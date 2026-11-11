@@ -1,3 +1,5 @@
+import { DoctypeException } from '../opc/exceptions.mjs';
+import { doctypeWarning, presenceOf } from '../opc/doctypeParts.mjs';
 import type { Relationships, Relationship } from '@docx4j/generated-objects-ts/modules/org_docx4j_relationships';
 import { XmlPart } from './XmlPart.mjs';
 import { Part, setRelationshipsPartFactory, type RelationshipSource } from './Part.mjs';
@@ -80,6 +82,35 @@ export class RelationshipsPart extends XmlPart<Relationships> {
         + "it is refused unless the load's repair is 'word' or 'all', or checkLossOnSave is false",
     };
     return parseXml(xml);
+  }
+
+  /** Part 2 §6.2.5 b) forbids a DOCTYPE in a relationships part (CR-033). */
+  protected override get forbidsDoctype(): boolean {
+    return true;
+  }
+
+  /**
+   * A relationships part holding a DOCTYPE (CR-033; the DTD handling policy's section 6.1): refused, naming the part. Under
+   * `repair: 'word'` or `'all'` a part's relationships part is read as Word 365 repairs it, every relationship lost
+   * (dtd-18-document-rels-bare): `part.not_read` with none kept, so a part only it named is absent and the save is CR-032's, and
+   * `xml.doctype` with `repaired`. `/_rels/.rels` is refused at every value, as Word refuses it after its repair prompt.
+   */
+  protected override readForbiddenDoctype(_text: string): Document {
+    const partName = this.partName.name;
+    if (!this.readsByLocalName) throw new DoctypeException(partName, "the package is refused, as Word 365 refuses it unless its repair is followed (repair: 'word')");
+    if (this.sourceP === undefined || partName === '/_rels/.rels') throw new DoctypeException(partName, 'the package is refused at every value of repair, as Word 365 refuses it after its repair prompt');
+    const reason = "a DOCTYPE, which ECMA-376 Part 2 §6.2.5 forbids in a relationships part";
+    this.readShort = {
+      code: 'part.not_read',
+      partName,
+      count: 0,
+      reason,
+      line: undefined,
+      column: undefined,
+      message: `${partName} holds ${reason}; read as Word 365 repairs it, every relationship lost, and a part only it named is absent (CR-033)`,
+    };
+    this.doctypeRepaired = doctypeWarning(partName, this.contentType, presenceOf(), { repaired: true });
+    return parseXml(`<Relationships xmlns="${Namespaces.RELATIONSHIPS}"/>`);
   }
 
   /** Where this part wasn't well formed and was read short, the warning saying so (CR-032); a part given contents since has none. */

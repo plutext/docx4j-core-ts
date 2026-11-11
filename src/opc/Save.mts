@@ -11,7 +11,9 @@ import type { RelationshipsNotReadWarning } from './exceptions.mjs';
 import type { ContentSkippedWarning } from './skipped.mjs';
 import type { Normalisation } from '@docx4j/generated-objects-ts';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
-import { encodeText } from '../xml/dom.mjs';
+import { encodeText, decodeXmlText } from '../xml/dom.mjs';
+import { hasDoctype } from '../xml/doctype.mjs';
+import { DefaultXmlPart } from '../parts/DefaultXmlPart.mjs';
 
 /**
  * A value a save wrote in its normal form, or left out (CR-015 D2 and D8; the objects facade's normaliser, its
@@ -48,6 +50,12 @@ export interface SaveReport {
    * form under the load's `repair: 'word'` or `'all'`, else with `checkLossOnSave` off.
    */
   relationshipsNotRead: RelationshipsNotReadWarning[];
+  /**
+   * Each part whose source held a DOCTYPE that this save wrote afresh without it (CR-033 D4): after an edit, every such part, so
+   * that Word 365, which refuses a DOCTYPE in the main part, a header or a footer, opens the file. An untouched save writes none
+   * afresh, passing each through as it came.
+   */
+  doctypes: string[];
 }
 
 function valueNormalised(partName: string, n: Normalisation): ValueNormalised {
@@ -89,13 +97,14 @@ async function writeTimes(pkg: OpcPackage): Promise<void> {
 export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promise<R> {
   if (pkg.writeTimesOnSave) await writeTimes(pkg);
   const saver = new Saver(pkg, sink);
+  await saver.dropDoctypes(); // first: a part it reads afresh is then one the losses are settled for
   await saver.settleLosses(); // before anything is written, whatever the sink
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);
   const result = await sink.finish();
   pkg.lastSave = {
     normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced, dropped: saver.dropped, lost: saver.lost,
-    relationshipsNotRead: saver.relationshipsNotRead,
+    relationshipsNotRead: saver.relationshipsNotRead, doctypes: saver.doctypes,
   };
   return result;
 }
@@ -110,6 +119,9 @@ class Saver {
   readonly relationshipsNotRead: RelationshipsNotReadWarning[] = [];
   /** Parts holding skipped content, read and not changed: written from their source (CR-025 section 2.2). */
   private readonly copied = new Set<string>();
+  readonly doctypes: string[] = [];
+  /** Parts read afresh so that their DOCTYPE isn't written (CR-033 D4): never copied from their source. */
+  private readonly rewritten = new Set<string>();
 
   constructor(private readonly pkg: OpcPackage, private readonly sink: PartSink<unknown>) {}
 
@@ -130,7 +142,7 @@ class Saver {
         if (part instanceof XmlPart) {
           const skipped = part.skippedByRead;
           if (skipped.length > 0) {
-            if (await part.isUnchangedSinceRead()) this.copied.add(part.partName.key);
+            if (!this.rewritten.has(part.partName.key) && await part.isUnchangedSinceRead()) this.copied.add(part.partName.key);
             else {
               this.dropped.push(...skipped.filter((w) => w.onSave === 'dropped'));
               const lost = skipped.filter((w) => w.onSave === 'lost');
@@ -153,6 +165,33 @@ class Saver {
       else this.relationshipsNotRead.push(w);
     }
     if (losses.length > 0) throw new SaveLossException(losses);
+  }
+
+  /**
+   * CR-033 D4 (the DTD handling policy's section 6.5): a save after an edit writes every part whose source holds a DOCTYPE afresh,
+   * without it, read with its entities expanded and its defaults applied, so that the edited file opens in Word, which refuses one
+   * in the main part, a header or a footer. An edit is a part written afresh: one unmarshalled or given content, or one the source
+   * didn't hold. An untouched save passes every part through. A signature part is left as it came: its bytes are what it signs.
+   */
+  async dropDoctypes(): Promise<void> {
+    const store = this.pkg.sourcePartStore;
+    const parts = [...this.pkg.parts];
+    const writtenAfresh = (p: Part): boolean => (p instanceof XmlPart && !p.isUntouched)
+      || (p instanceof DefaultXmlPart && p.isLoaded) || (store !== undefined && !store.has(p.partName.storeName));
+    if (store !== undefined && !parts.some(writtenAfresh)) return;
+    for (const part of parts) {
+      if (part.contentType === ContentTypes.DIGITAL_SIGNATURE_XML_SIGNATURE_PART) continue;
+      if (!(part instanceof XmlPart) && !(part instanceof DefaultXmlPart)) continue;
+      if (writtenAfresh(part)) {
+        if ((part instanceof XmlPart && part.doctypeRead) || (part instanceof DefaultXmlPart && part.doctype)) this.doctypes.push(part.partName.name);
+        continue;
+      }
+      if (!hasDoctype(decodeXmlText(await part.getBytes()))) continue;
+      if (part instanceof XmlPart) await part.getContents();
+      else { await part.parseDocument(); part.markModified(); }
+      this.rewritten.add(part.partName.key);
+      this.doctypes.push(part.partName.name);
+    }
   }
 
   async saveRels(rp: RelationshipsPart): Promise<void> {

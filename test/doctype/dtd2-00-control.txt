@@ -1,0 +1,24 @@
+DTD2_BEGIN
+Case dtd2-00-control
+TARGET TEXT
+FOOTNOTE ANCHOR1
+ENDNOTE ANCHORi
+COMMENTED WORDS[P1]
+NUMBERED-1: LISTED WORDS
+EMBEDDED_TEXT
+DTD2_END
+FOOTNOTE_TEXT
+ENDNOTE_TEXT
+[P1]COMMENT_TEXT
+---------------
+
+------------------------------------------------------------
+
+---------------
+
+------------------------------------------------------------
+
+HEADER_TEXT
+
+FOOTER_TEXT
+

@@ -1,7 +1,9 @@
+import { hasDoctype } from '../xml/doctype.mjs';
+import { doctypeWarning } from '../opc/doctypeParts.mjs';
 import { unmarshalNode, marshalNode, NAMESPACE_PREFIXES, type Jsonix, type MarshalOptions, type WordReading, type OutOfRange, type MisplacedChild } from '@docx4j/generated-objects-ts';
 import { Part, type PartBytesOptions } from './Part.mjs';
 import { PartName } from '../opc/PartName.mjs';
-import { Docx4JException, PartUnmarshalException } from '../opc/exceptions.mjs';
+import { Docx4JException, PartUnmarshalException, DoctypeException, type DoctypeWarning } from '../opc/exceptions.mjs';
 import { parseXml, serializeXml, encodeText, decodeXmlText, XML_DECLARATION, assertXmlCharacters } from '../xml/dom.mjs';
 import { bindSnapshot, boundsOf, type Bound } from '../model/content/binder.mjs';
 import type { PartWarning, ValueKeptWarning, ValueOutOfRangeWarning, MisplacedContentWarning } from '../opc/mce/preprocessor.mjs';
@@ -166,6 +168,10 @@ export class XmlPart<T = unknown> extends Part {
   /** Runs over the DOM before unmarshalling; the package sets its MCE preprocessor here. */
   preprocessor: DomPreprocessor | undefined;
   private parseWarnings: readonly PartWarning[] = [];
+  /** The last parse's DOCTYPE, said first among the warnings (CR-033). */
+  private parsedDoctype: DoctypeWarning | undefined;
+  /** Whether a read of this part met a DOCTYPE: a save after an edit writes it afresh, without one (CR-033 D4). */
+  doctypeRead = false;
   /** The bytes given to `setBytes` that the tree was read from; undefined where it came from the source container. */
   private parsedBytes: Uint8Array | undefined;
 
@@ -278,7 +284,8 @@ export class XmlPart<T = unknown> extends Part {
    * not an option, so ahead of the package's hook, which sees the repaired DOM), then the hook.
    */
   private preprocess(doc: Document): void {
-    this.parseWarnings = this.preprocessed(doc);
+    const doctype = this.parsedDoctype;
+    this.parseWarnings = doctype ? [doctype, ...this.preprocessed(doc)] : this.preprocessed(doc);
   }
 
   /**
@@ -425,8 +432,17 @@ export class XmlPart<T = unknown> extends Part {
    */
   private parse(bytes: Uint8Array): Document {
     const text = decodeXmlText(bytes);
+    this.parsedDoctype = undefined;
+    // a part ECMA-376 Part 2 defines may hold no DOCTYPE (§6.2.5 b): refused, or read as Word repairs it (CR-033)
+    if (this.forbidsDoctype && hasDoctype(text)) {
+      this.doctypeRead = true;
+      return this.readForbiddenDoctype(text);
+    }
     try {
-      return parseXml(text);
+      return parseXml(text, (summary) => {
+        this.doctypeRead = true;
+        this.parsedDoctype = doctypeWarning(this.partName.name, this.contentType, summary);
+      });
     } catch (cause) {
       const at = (cause as { locator?: { lineNumber?: unknown; columnNumber?: unknown } } | undefined)?.locator;
       const line = typeof at?.lineNumber === 'number' ? at.lineNumber : undefined;
@@ -445,6 +461,21 @@ export class XmlPart<T = unknown> extends Part {
    */
   protected readMalformed(_text: string, _failure: PartUnmarshalException): Document | undefined {
     return undefined;
+  }
+
+  /** Whether ECMA-376 Part 2 forbids a DOCTYPE in this part (§6.2.5 b): a relationships part's, not a document part's (CR-033). */
+  protected get forbidsDoctype(): boolean {
+    return false;
+  }
+
+  /** A part that may hold no DOCTYPE and holds one: refused by default; a relationships part reads it as Word repairs it (CR-033). */
+  protected readForbiddenDoctype(_text: string): Document {
+    throw new DoctypeException(this.partName.name, 'the package is refused');
+  }
+
+  /** The warning a parse records for a DOCTYPE this part's kind reads as Word repairs it (CR-033). */
+  protected set doctypeRepaired(warning: DoctypeWarning) {
+    this.parsedDoctype = warning;
   }
 
   /**

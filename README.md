@@ -76,6 +76,8 @@ pkg.repaired;                                       // 'none', 'word' or 'own'; 
 | An `External` `officeDocument` relationship alone | Refused: no main document part (REQ-321) | Refused | Refused |
 | A relationships part that isn't well formed ([CR-032](docs/change-requests/CR-032-a-relationships-part-not-well-formed.md)) | Read at every value as Word's repair reads it: the relationships before the break, a part only a lost one named absent: `part.not_read`, the count kept. A save is refused (below) | Read the same; a save writes that repaired form | As `word` |
 | `_rels/.rels` that isn't well formed, the main part's relationship lost with the break | `PartUnmarshalException`, naming the part and the parse error | Refused | Refused |
+| A DOCTYPE in `[Content_Types].xml` or `_rels/.rels`, which ECMA-376 Part 2 forbids ([CR-033](docs/change-requests/CR-033-doctype.md)) | `DoctypeException` (`package.doctype`), naming the part | Refused, as Word refuses it after its repair prompt | Refused |
+| A DOCTYPE in a part's relationships part, the core properties or a signature part | `DoctypeException` | Read as Word repairs it: the relationships part's relationships all lost (`part.not_read`, none kept), the core properties absent, a signature part read: `xml.doctype` | As `word` |
 
 Each warning is on `pkg.warnings` and, in the text model, a warning of the same code. A save then writes the
 repaired package: one entry of each name, one main relationship, the right namespace, no `External` main
@@ -85,6 +87,13 @@ each listed on `pkg.lastSave.dropped`; one that would lose anything else Word ke
 `pkg.checkLossOnSave = false`, each item then on `pkg.lastSave.lost`. Each `part.skipped` warning says which (`onSave`). The other shapes
 Word repairs, such as an undeclared `mc:Ignorable` prefix or an element the model has no place for, read the same at
 every value (CR-031 section 2.1.1).
+
+A DOCTYPE anywhere else (the main part, a header, styles, a custom XML store, ...) is allowed by the standard, and is
+read at every value: this package reads it itself, never the platform's parser, expanding its internal entities and
+applying its attribute defaults within limits (nesting 8 deep, 10,000 references, 1 MiB of replacement text a part; past
+one, the part reads as XML not well formed) and fetching nothing outside the package ([CR-033](docs/change-requests/CR-033-doctype.md)).
+An `xml.doctype` warning names the part, what the DOCTYPE held and what Word does with such a file: it refuses one in the
+main part, a header or a footer, and reads styles, settings, numbering, notes, comments and the store as absent.
 
 ### Saving
 
@@ -98,6 +107,7 @@ content Word keeps. Each check has a switch on the package, and each records wha
 | Lose what the read skipped, where Word's save keeps it or Word won't open the file ([CR-025](docs/change-requests/CR-025-dropped-content-reported.md)) | `SaveLossException` (`save.content_lost`, each part) | `pkg.checkLossOnSave = false` | `lost` |
 | Lose what the read skipped, where Word's own save drops it too | Nothing: written without it | | `dropped` |
 | Drop what a relationships part read short lost, at `repair: 'refuse'` ([CR-032](docs/change-requests/CR-032-a-relationships-part-not-well-formed.md)) | `SaveLossException` (`save.content_lost`, the part and the relationships kept) | `pkg.checkLossOnSave = false`, or load with `repair: 'word'` | `relationshipsNotRead` |
+| Follow an edit in a package with a DOCTYPE in any part ([CR-033](docs/change-requests/CR-033-doctype.md)) | Nothing: every such part written afresh without its DOCTYPE, its entities expanded, so that Word opens the file (an untouched save passes each through) | | `doctypes` |
 
 ```ts
 import { SaveLossException } from '@docx4j/core-ts';

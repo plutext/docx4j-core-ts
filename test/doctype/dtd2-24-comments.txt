@@ -1,0 +1,24 @@
+DTD2_BEGIN
+Case dtd2-24-comments
+TARGET TEXT
+FOOTNOTE ANCHOR1
+ENDNOTE ANCHORi
+COMMENTED WORDS[1]
+NUMBERED-1: LISTED WORDS
+EMBEDDED_TEXT
+DTD2_END
+FOOTNOTE_TEXT
+ENDNOTE_TEXT
+[1]
+---------------
+
+------------------------------------------------------------
+
+---------------
+
+------------------------------------------------------------
+
+HEADER_TEXT
+
+FOOTER_TEXT
+

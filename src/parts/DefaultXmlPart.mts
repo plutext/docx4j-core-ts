@@ -1,3 +1,5 @@
+import { doctypeWarning } from '../opc/doctypeParts.mjs';
+import type { DoctypeWarning } from '../opc/exceptions.mjs';
 import { Part } from './Part.mjs';
 import { PartName } from '../opc/PartName.mjs';
 import { ContentTypes } from '../opc/ContentTypes.mjs';
@@ -19,6 +21,8 @@ export class DefaultXmlPart extends Part {
    * adopts it.
    */
   private readDocument: Document | undefined;
+  /** The DOCTYPE the part's source held, read by `readDoctype` (CR-033); `pkg.warnings` gathers it. */
+  doctype: DoctypeWarning | undefined;
 
   constructor(partName: PartName | string, contentType: string = ContentTypes.APPLICATION_XML, relationshipType: string = '') {
     super(partName, contentType, relationshipType);
@@ -50,7 +54,9 @@ export class DefaultXmlPart extends Part {
     if (this.readDocument === undefined) {
       const bytes = this.bytes ?? (await this.loadSourceBytes());
       if (bytes === undefined) throw new Docx4JException(`Part ${this.partName} has no content: set a document or load it from a container`);
-      this.readDocument = parseXml(decodeXmlText(bytes));
+      this.readDocument = parseXml(decodeXmlText(bytes), (summary) => {
+        this.doctype = doctypeWarning(this.partName.name, this.contentType, summary, { store: this.relationshipType === Namespaces.CUSTOM_XML_DATA_STORAGE });
+      });
     }
     return this.readDocument;
   }

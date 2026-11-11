@@ -1,0 +1,92 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "dtd2-00-control.word.docx",
+   "format": "docx",
+   "bytes": 20703,
+   "sha256": "d3964cdb2c280ad6b461958c1baeb756c08b91a480221f55e50b70a0e0400da2"
+  },
+  {
+   "name": "dtd2-00-control.txt",
+   "format": "txt",
+   "bytes": 397,
+   "sha256": "815ccfe544cc735924c09f14fa63047085de720c82c13806978f375f77be0abe"
+  },
+  {
+   "name": "dtd2-00-control.pdf",
+   "format": "pdf",
+   "bytes": 50070,
+   "sha256": "840a666b325166b2feebd404d5b3cdb75a35e6ca1a2ccdc501b440e74cffb268"
+  }
+ ],
+ "seconds": 5.2,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd2-00-control.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "dtd2-00-control.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "txt",
+   "opened": "silent",
+   "name": "dtd2-00-control.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "dtd2-00-control.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.2
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

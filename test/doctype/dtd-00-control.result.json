@@ -1,0 +1,74 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "dtd-00-control.word.docx",
+   "format": "docx",
+   "bytes": 16187,
+   "sha256": "d338810dfc7b5f7876f65c8a034b9d66266f1af39ec8353a56bc1408de71f4d8"
+  },
+  {
+   "name": "dtd-00-control.txt",
+   "format": "txt",
+   "bytes": 61,
+   "sha256": "b7f7c0073f2872fb3a133efebd9fd6522aad2d82cbc638ba34fc839dbf7994c1"
+  }
+ ],
+ "seconds": 4.0,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd-00-control.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "dtd-00-control.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "txt",
+   "opened": "silent",
+   "name": "dtd-00-control.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.14
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

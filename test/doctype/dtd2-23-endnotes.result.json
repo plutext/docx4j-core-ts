@@ -1,0 +1,189 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "repaired",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-23-endnotes.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.64,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 3.64,
+   "open": 1,
+   "kind": "show-repairs",
+   "screenshot": "dialog-2.png",
+   "pressed": "Close",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-23-endnotes.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 4.68,
+   "open": 2,
+   "kind": "repair",
+   "screenshot": "dialog-3.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 5.64,
+   "open": 2,
+   "kind": "show-repairs",
+   "screenshot": "dialog-4.png",
+   "pressed": "Close",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-23-endnotes.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 6.6,
+   "open": 3,
+   "kind": "repair",
+   "screenshot": "dialog-5.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 7.53,
+   "open": 3,
+   "kind": "show-repairs",
+   "screenshot": "dialog-6.png",
+   "pressed": "Close",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [
+  {
+   "name": "dtd2-23-endnotes.word.docx",
+   "format": "docx",
+   "bytes": 20738,
+   "sha256": "fbfe446ff725c91036d6fefa19083b8e556d36e1657252bf5f27e657560b1c51"
+  },
+  {
+   "name": "dtd2-23-endnotes.txt",
+   "format": "txt",
+   "bytes": 388,
+   "sha256": "b58e7430df3601a13abb2191ebdce8456da1ae2ed0b8c209898ef009f3250b90"
+  },
+  {
+   "name": "dtd2-23-endnotes.pdf",
+   "format": "pdf",
+   "bytes": 49778,
+   "sha256": "3924f0c201499e14bd3bbe27d5b4265f4a4742de0c70ee5fd2b776e16decfd91"
+  }
+ ],
+ "seconds": 8.4,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd2-23-endnotes.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "txt",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "pdf",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.11
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.2,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

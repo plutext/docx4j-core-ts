@@ -6,7 +6,7 @@ import { ZipPartStore, ZipPartSink } from '../opc/ZipPartStore.mjs';
 import { FlatOpcPartStore, FlatOpcPartSink, type FlatOpcSinkOptions } from '../opc/FlatOpcPartStore.mjs';
 import { loadPackage, type LoadOptions } from '../opc/Load.mjs';
 import { savePackage, type SaveReport } from '../opc/Save.mjs';
-import { Docx4JException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning, type RelationshipsNamespaceWarning, type RelationshipsNotReadWarning } from '../opc/exceptions.mjs';
+import { Docx4JException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning, type RelationshipsNamespaceWarning, type RelationshipsNotReadWarning, type DoctypeWarning } from '../opc/exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { Part, type RelationshipSource } from '../parts/Part.mjs';
 import { Parts } from '../parts/Parts.mjs';
@@ -50,6 +50,11 @@ export class OpcPackage implements RelationshipSource {
    * `LoadOptions.repair: 'word'` (WD REQ-206, CR-024); empty for a package loaded without one, or made here.
    */
   duplicateEntries: readonly DuplicateEntryWarning[] = [];
+  /**
+   * A DOCTYPE in the core properties or a signature part, read under `repair: 'word'` or `'all'` as Word reads it (CR-033): the
+   * core properties as absent, a signature part as it is. The load refuses either otherwise.
+   */
+  doctypes: readonly DoctypeWarning[] = [];
   /**
    * Where the package relationships held more than one officeDocument relationship, read from the last under
    * `LoadOptions.repair: 'word'` (WD REQ-206's statement, CR-024 section 9); undefined for a package with one, or made here.
@@ -197,7 +202,15 @@ export class OpcPackage implements RelationshipSource {
     const out: PackageWarning[] = [...this.duplicateEntries];
     if (this.multipleMainParts) out.push(this.multipleMainParts);
     if (this.externalMainPart) out.push(this.externalMainPart);
-    for (const part of this.parts) if (part instanceof XmlPart) out.push(...part.warnings);
+    out.push(...this.doctypes);
+    for (const part of this.parts) {
+      if (part instanceof XmlPart) out.push(...part.warnings);
+      // a custom XML store or another DOM part that held a DOCTYPE (CR-033), once parsed
+      else {
+        const doctype = (part as unknown as { doctype?: DoctypeWarning }).doctype;
+        if (doctype) out.push(doctype);
+      }
+    }
     // a relationships part's own, what its read dropped: a child of another local name, an attribute the model doesn't map
     // (CR-025 section 8, D12); after the parts', and outside the save's gate, since none names a part
     for (const rels of [this.relationshipsPart, ...[...this.parts].map((p) => p.relationshipsPart)]) if (rels) out.push(...rels.warnings);
@@ -237,7 +250,9 @@ export class OpcPackage implements RelationshipSource {
    */
   get repaired(): Repaired {
     if (this.externalMainPart) return 'own';
-    return this.duplicateEntries.length > 0 || this.multipleMainParts || this.relationshipsNamespaces.length > 0 ? 'word' : 'none';
+    if (this.duplicateEntries.length > 0 || this.multipleMainParts || this.relationshipsNamespaces.length > 0) return 'word';
+    // a relationships part or the core properties read as Word repairs a DOCTYPE in it (CR-033)
+    return this.warnings.some((w) => w.code === 'xml.doctype' && w.repaired) ? 'word' : 'none';
   }
 
   /**

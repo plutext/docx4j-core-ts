@@ -1,0 +1,79 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "refused",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-16-content-types-bare.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.89,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord experienced an error trying to open the file.\nTry these suggestions.\n* Check the file permissions for the document or drive.\n* Make sure there is sufficient free memory and disk space.\n* Open the file with the Text Recovery converter.\r (C:\\...\\in\\dtd-16-content-types-bare.docx)",
+   "buttons": [
+    "OK"
+   ],
+   "at": 3.78,
+   "open": 1,
+   "kind": "error",
+   "screenshot": "dialog-2.png",
+   "pressed": "OK",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [],
+ "seconds": 4.7,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd-16-content-types-bare.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "refused",
+   "error": {
+    "hresult": -2147352567,
+    "text": "Exception occurred.",
+    "description": "Word experienced an error trying to open the file.\nTry these suggestions.\n* Check the file permissions for the document or drive.\n* Make sure there is sufficient free memory and disk space.\n* Open the file with the Text Recovery converter.",
+    "scode": -2146823167
+   }
+  }
+ ],
+ "saves": [],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.48
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 1.9,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [
+  "no docx output",
+  "no txt output"
+ ],
+ "complete": false,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

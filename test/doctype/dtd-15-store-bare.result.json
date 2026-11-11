@@ -1,0 +1,105 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "repaired",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-15-store-bare.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.93,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-15-store-bare.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 4.07,
+   "open": 2,
+   "kind": "repair",
+   "screenshot": "dialog-2.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [
+  {
+   "name": "dtd-15-store-bare.word.docx",
+   "format": "docx",
+   "bytes": 14935,
+   "sha256": "c0c32a1ed2f02ed781468ee1bb60827fa0b8fbcfb8e60e9d0f15d4848a8de9f3"
+  },
+  {
+   "name": "dtd-15-store-bare.txt",
+   "format": "txt",
+   "bytes": 61,
+   "sha256": "9ddec1392de6d9c474d05fb1f0aed504030acbc67780b044e33cae1b95cf4b5b"
+  }
+ ],
+ "seconds": 5.1,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd-15-store-bare.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "txt",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.46
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

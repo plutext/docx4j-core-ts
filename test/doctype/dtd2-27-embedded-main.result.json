@@ -1,0 +1,138 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "repaired",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-27-embedded-main.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.76,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-27-embedded-main.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 4.06,
+   "open": 2,
+   "kind": "repair",
+   "screenshot": "dialog-2.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-27-embedded-main.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 5.44,
+   "open": 3,
+   "kind": "repair",
+   "screenshot": "dialog-3.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [
+  {
+   "name": "dtd2-27-embedded-main.word.docx",
+   "format": "docx",
+   "bytes": 20705,
+   "sha256": "f80f14335c00f0c9657bcacae35bf5e0b0cba7acbbb8ca6eea907f1a0544aa2d"
+  },
+  {
+   "name": "dtd2-27-embedded-main.txt",
+   "format": "txt",
+   "bytes": 390,
+   "sha256": "f12d1f0f4b7036223f8c45823f2b06ce8a8864b7118e867cc7354e3e061d484f"
+  },
+  {
+   "name": "dtd2-27-embedded-main.pdf",
+   "format": "pdf",
+   "bytes": 49684,
+   "sha256": "5ff395244fdbd4439546b633584ccf5e7a2ff560dbc9db178c87fdeb495238a2"
+  }
+ ],
+ "seconds": 6.6,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd2-27-embedded-main.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "txt",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "pdf",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.11
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

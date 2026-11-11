@@ -1,0 +1,137 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [
+  {
+   "title": "",
+   "class": "Net UI Tool Window",
+   "text": "Marked As Final\nAn author has marked this document as final to discourage editing.",
+   "buttons": [
+    "OK"
+   ],
+   "at": 3.24,
+   "open": 1,
+   "kind": "marked-final",
+   "screenshot": "dialog-1.png"
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nThe save failed due to out of memory or disk space.\r (C:\\...\\out\\dtd2-91-signature.word.docx)",
+   "buttons": [
+    "OK"
+   ],
+   "at": 3.66,
+   "open": 1,
+   "kind": "save-failed-memory",
+   "screenshot": "dialog-2.png",
+   "pressed": "OK",
+   "pressTries": 1
+  },
+  {
+   "title": "",
+   "class": "Net UI Tool Window",
+   "text": "Marked As Final\nAn author has marked this document as final to discourage editing.",
+   "buttons": [
+    "OK"
+   ],
+   "at": 4.7,
+   "open": 3,
+   "kind": "marked-final",
+   "screenshot": "dialog-3.png"
+  }
+ ],
+ "outputs": [],
+ "seconds": 5.8,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd2-91-signature.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "dtd2-91-signature.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "txt",
+   "opened": "silent",
+   "name": "dtd2-91-signature.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "dtd2-91-signature.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-failed",
+   "format": "docx",
+   "error": {
+    "hresult": -2147352567,
+    "text": "Exception occurred.",
+    "description": "The save failed due to out of memory or disk space.",
+    "scode": -2146822933
+   },
+   "alertsOff": false
+  },
+  {
+   "kind": "save-failed",
+   "format": "txt",
+   "error": {
+    "hresult": -2147352567,
+    "text": "Exception occurred.",
+    "description": "The save failed due to out of memory or disk space.\r (C:\\bridge-work\\...\\dtd2-91-signature.txt)",
+    "scode": -2146822933
+   },
+   "alertsOff": true
+  },
+  {
+   "kind": "save-failed",
+   "format": "pdf",
+   "error": {
+    "hresult": -2147352567,
+    "text": "Exception occurred.",
+    "description": "Command failed",
+    "scode": -2146824090
+   },
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.11
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [
+  "save failed: docx",
+  "save failed: txt",
+  "save failed: pdf",
+  "no docx output",
+  "no txt output",
+  "no pdf output"
+ ],
+ "complete": false,
+ "installed": {
+  "version": "ed94a27",
+  "installedAt": "2026-11-10T11:28:48"
+ }
+}

@@ -1,0 +1,139 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "repaired",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-11-styles-entity-used.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.64,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 3.58,
+   "open": 1,
+   "kind": "show-repairs",
+   "screenshot": "dialog-2.png",
+   "pressed": "Close",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-11-styles-entity-used.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 4.62,
+   "open": 2,
+   "kind": "repair",
+   "screenshot": "dialog-3.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 5.54,
+   "open": 2,
+   "kind": "show-repairs",
+   "screenshot": "dialog-4.png",
+   "pressed": "Close",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [
+  {
+   "name": "dtd-11-styles-entity-used.word.docx",
+   "format": "docx",
+   "bytes": 16108,
+   "sha256": "2d4db239c239b9b875207380fc38ece702825db680ae18e0ffad18e3968c6be1"
+  },
+  {
+   "name": "dtd-11-styles-entity-used.txt",
+   "format": "txt",
+   "bytes": 61,
+   "sha256": "2b313424ada7fc97ae51bd5e14ce6d60790bb7b2a76394578f7bc7419092cbc1"
+  }
+ ],
+ "seconds": 6.5,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd-11-styles-entity-used.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "txt",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.08
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.2,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

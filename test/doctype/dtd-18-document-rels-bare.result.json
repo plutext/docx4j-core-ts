@@ -1,0 +1,105 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "repaired",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-18-document-rels-bare.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.86,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-18-document-rels-bare.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 3.92,
+   "open": 2,
+   "kind": "repair",
+   "screenshot": "dialog-2.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [
+  {
+   "name": "dtd-18-document-rels-bare.word.docx",
+   "format": "docx",
+   "bytes": 12284,
+   "sha256": "fe43019e9107cd3bf9cab08d0a59f36b2920afe08fe0555764499b5ba6528219"
+  },
+  {
+   "name": "dtd-18-document-rels-bare.txt",
+   "format": "txt",
+   "bytes": 46,
+   "sha256": "9ffeb35dc83ca4be369483fb4c72acc0448779c73adca5b23223c8803a7910da"
+  }
+ ],
+ "seconds": 4.9,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd-18-document-rels-bare.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "txt",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.46
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.5,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

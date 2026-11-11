@@ -1,0 +1,189 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "repaired",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-25-numbering.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.92,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 3.9,
+   "open": 1,
+   "kind": "show-repairs",
+   "screenshot": "dialog-2.png",
+   "pressed": "Close",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-25-numbering.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 4.87,
+   "open": 2,
+   "kind": "repair",
+   "screenshot": "dialog-3.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 5.93,
+   "open": 2,
+   "kind": "show-repairs",
+   "screenshot": "dialog-4.png",
+   "pressed": "Close",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd2-25-numbering.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 6.85,
+   "open": 3,
+   "kind": "repair",
+   "screenshot": "dialog-5.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 7.77,
+   "open": 3,
+   "kind": "show-repairs",
+   "screenshot": "dialog-6.png",
+   "pressed": "Close",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [
+  {
+   "name": "dtd2-25-numbering.word.docx",
+   "format": "docx",
+   "bytes": 20841,
+   "sha256": "dbdc233b0dceffa6ba4fc1cc9c0e0d9e76f79171d6a6852ac8c724080c5f8db9"
+  },
+  {
+   "name": "dtd2-25-numbering.txt",
+   "format": "txt",
+   "bytes": 390,
+   "sha256": "a844771766b62dd6954b140ae707b1c4399bbbf7c51dad7f7be524d66b63e866"
+  },
+  {
+   "name": "dtd2-25-numbering.pdf",
+   "format": "pdf",
+   "bytes": 50209,
+   "sha256": "41f9a2c0e345f8e3f587dbeac02d318228af85109ba3f044e11d6e778a5f01d1"
+  }
+ ],
+ "seconds": 8.7,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd2-25-numbering.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "txt",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "pdf",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.48
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

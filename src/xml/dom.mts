@@ -2,6 +2,7 @@
 // @xmldom/xmldom; in browsers it uses the native DOM. Jsonix.DOM is typed since @docx4j/jsonix 3.2.1.
 import { Jsonix } from '@docx4j/generated-objects-ts';
 import { Docx4JException } from '../opc/exceptions.mjs';
+import { readDoctype, applyAttributeDefaults, type DoctypeSummary } from './doctype.mjs';
 
 const DOM = Jsonix.DOM;
 
@@ -9,7 +10,8 @@ const DOM = Jsonix.DOM;
 export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
 /**
- * Parses XML text to a DOM document; throws on malformed input, in a browser as in Node.
+ * Parses XML text to a DOM document; throws on malformed input, in a browser as in Node. A DOCTYPE in the prolog is read by
+ * `readDoctype` first, never by the parser (CR-033); `onDoctype` hears what it held.
  *
  * xmldom throws. A browser's `DOMParser` does not: Chromium returns the document up to the error
  * with an XHTML `parsererror` element first in the root, and Firefox a `parsererror` root in its
@@ -18,10 +20,17 @@ export const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone=
  * (CR-002 section 33). Such a document is refused here, with the parser's own message, which
  * carries the line and column in both browsers.
  */
-export function parseXml(text: string): Document {
-  const doc = DOM.parse(text);
+export function parseXml(text: string, onDoctype?: (summary: DoctypeSummary) => void): Document {
+  // a DOCTYPE is read here, never by the platform's parser: its internal entities expanded and its defaults applied within this
+  // package's limits, nothing outside the text fetched, alike in Node and in a browser (CR-033)
+  const reading = readDoctype(text);
+  const doc = DOM.parse(reading ? reading.text : text);
   const error = parserErrorOf(doc);
   if (error !== undefined) throw new Docx4JException(`Malformed XML: ${error}`);
+  if (reading) {
+    reading.summary.defaulted = applyAttributeDefaults(doc, reading.defaults);
+    onDoctype?.(reading.summary);
+  }
   return doc;
 }
 

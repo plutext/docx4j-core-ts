@@ -1,0 +1,139 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "repaired",
+ "dialogs": [
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-12-settings-bare.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 2.97,
+   "open": 1,
+   "kind": "repair",
+   "screenshot": "dialog-1.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 3.92,
+   "open": 1,
+   "kind": "show-repairs",
+   "screenshot": "dialog-2.png",
+   "pressed": "Close",
+   "pressTries": 1
+  },
+  {
+   "title": "Microsoft Word",
+   "class": "NUIDialog",
+   "text": "Microsoft Word\nWord found unreadable content in dtd-12-settings-bare.docx. Do you want to recover the contents of this document? If you trust the source of this document, click Yes.",
+   "buttons": [
+    "Yes",
+    "No"
+   ],
+   "at": 4.94,
+   "open": 2,
+   "kind": "repair",
+   "screenshot": "dialog-3.png",
+   "pressed": "Yes",
+   "pressTries": 1
+  },
+  {
+   "title": "Show Repairs",
+   "class": "bosa_sdm_msword",
+   "text": "Errors were detected in this file, but Word was able to open the file by making the repairs listed below.  Save the file to make the repairs permanent.\nSort By:",
+   "buttons": [
+    "Line up",
+    "Line down",
+    "Go To",
+    "Close"
+   ],
+   "at": 5.89,
+   "open": 2,
+   "kind": "show-repairs",
+   "screenshot": "dialog-4.png",
+   "pressed": "Close",
+   "pressTries": 1
+  }
+ ],
+ "outputs": [
+  {
+   "name": "dtd-12-settings-bare.word.docx",
+   "format": "docx",
+   "bytes": 16191,
+   "sha256": "d46f6bc0086e7801ec38517eac9d522e79dcb5dc806089b2fca2d992a3ff1af8"
+  },
+  {
+   "name": "dtd-12-settings-bare.txt",
+   "format": "txt",
+   "bytes": 61,
+   "sha256": "0b97312093e541882c230deab6de92f1e0b3787b3f24a429b9dfe44a9a52a86b"
+  }
+ ],
+ "seconds": 6.9,
+ "timedOut": false,
+ "verb": "save",
+ "input": "dtd-12-settings-bare.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  },
+  {
+   "format": "txt",
+   "opened": "repaired",
+   "name": "Document1",
+   "readOnly": false,
+   "saved": false
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "txt",
+   "alertsOff": true
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.56
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.1,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "da85101",
+  "installedAt": "2026-11-10T07:54:11"
+ }
+}

@@ -1,6 +1,7 @@
 import { PartName } from './PartName.mjs';
 import { ContentTypes } from './ContentTypes.mjs';
-import { InvalidFormatException } from './exceptions.mjs';
+import { InvalidFormatException, DoctypeException } from './exceptions.mjs';
+import { hasDoctype } from '../xml/doctype.mjs';
 import { XML_DECLARATION, parseXml, childElements } from '../xml/dom.mjs';
 
 export const CONTENT_TYPES_NS = 'http://schemas.openxmlformats.org/package/2006/content-types';
@@ -27,6 +28,8 @@ export class ContentTypeManager {
   /** Parses `[Content_Types].xml`. */
   static parse(xml: string): ContentTypeManager {
     const ctm = new ContentTypeManager();
+    // Part 2 §6.2.5 b) forbids a DOCTYPE here, and Word 365 refuses such a file after its repair prompt (CR-033)
+    if (hasDoctype(xml)) throw new DoctypeException('/[Content_Types].xml', 'the package is refused at every value of repair, as Word 365 refuses it after its repair prompt');
     const doc = parseXml(xml);
     const root = doc.documentElement;
     if (root.localName !== 'Types') throw new InvalidFormatException(`[Content_Types].xml: expected Types, found ${root.nodeName}`);

@@ -322,3 +322,43 @@ export class SaveLossException extends Docx4JException {
     return out.join(' ');
   }
 }
+
+/**
+ * A DOCTYPE in a part ECMA-376 Part 2 forbids one in (CR-033; Part 2 §6.2.5 b), "DTD declarations shall not be used in the XML
+ * markup defined in this document": the content types, every relationships part, the core properties and every digital
+ * signature part; the portfolio's DTD handling policy, section 6.1). The package is refused at the load, naming the part. Under
+ * `repair: 'word'` or `'all'` a document's relationships part and the core properties are read as Word repairs them instead,
+ * and a signature part as Word opens it; the content types and `/_rels/.rels` are refused at every value, as Word refuses them
+ * after its repair prompt.
+ */
+export class DoctypeException extends PartUnmarshalException {
+  readonly code = 'package.doctype';
+
+  constructor(partName: string, why: string) {
+    super(`${partName} holds a DOCTYPE, which ECMA-376 Part 2 §6.2.5 forbids in it; ${why} (CR-033)`, partName);
+    this.name = 'DoctypeException';
+  }
+}
+
+/**
+ * A part that held a DOCTYPE (CR-033, the policy's working name `xml.doctype`): what the DOCTYPE held, and how the part was read.
+ * Outside the parts Part 2 defines, the part is read with its internal entities expanded and its attribute defaults applied,
+ * nothing outside the text fetched, and Word's reading of such a file said (`word`). In a document relationships part or the
+ * core properties under `repair: 'word'`, `repaired` is true: the part is read as Word repairs it.
+ */
+export interface DoctypeWarning {
+  code: 'xml.doctype';
+  partName: string;
+  /** What the DOCTYPE held: `bare`, or `elements`, `attributes`, `entities` and `external` as it held them. */
+  holds: string[];
+  /** The entity references expanded and the attribute defaults applied. */
+  expanded: number;
+  defaulted: number;
+  /** What wasn't read: an external subset, external and parameter entities. */
+  notRead: string[];
+  /** Word 365's reading of a file with a DOCTYPE in this part (the portfolio's dtd-word-check and dtd2-word-check rounds). */
+  word: 'refuses the file' | 'reads the part as absent' | 'loses every relationship' | 'opens it' | 'not measured';
+  /** Read as Word repairs it, not as the part says (`repair: 'word'`). */
+  repaired: boolean;
+  message: string;
+}

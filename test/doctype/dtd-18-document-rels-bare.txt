@@ -1,0 +1,4 @@
+DTD_BEGIN
+Case dtd-18
+TARGET TEXT
+DTD_END

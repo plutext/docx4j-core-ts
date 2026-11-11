@@ -2,7 +2,7 @@ import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx
 import type { PartStore } from './PartStore.mjs';
 import { PartName, CONTENT_TYPES_NAME } from './PartName.mjs';
 import { ContentTypeManager } from './ContentTypeManager.mjs';
-import { Docx4JException, DuplicateEntryException, ExternalMainPartException, InvalidFormatException, MultipleMainPartsException, PartUnmarshalException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning } from './exceptions.mjs';
+import { Docx4JException, DuplicateEntryException, ExternalMainPartException, InvalidFormatException, MultipleMainPartsException, PartUnmarshalException, DoctypeException, type DoctypeWarning, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import { XmlPart, type DomPreprocessor } from '../parts/XmlPart.mjs';
@@ -12,6 +12,9 @@ import { PartRegistry, defaultPartRegistry } from '../parts/PartRegistry.mjs';
 import type { Part, RelationshipSource } from '../parts/Part.mjs';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
 import { decodeXmlText, parseXml } from '../xml/dom.mjs';
+import { hasDoctype } from '../xml/doctype.mjs';
+import { doctypeWarning, presenceOf } from './doctypeParts.mjs';
+import { ContentTypes } from './ContentTypes.mjs';
 
 /**
  * WD REQ-207's option (CR-031): how a load treats a package Word reads only through a repair, or won't open. `'refuse'`, the
@@ -137,10 +140,36 @@ export async function loadPackage<P extends OpcPackage>(
   await loader.registerCustomXmlDataStorageParts();
   // after the walk, so a target the kept part reaches by a relationship of its own, or a second relationship names, keeps its type
   for (const name of mainParts?.dropped ?? []) if (!pkg.getPart(name)) ctm.removeOverrideContentType(name);
+  // CR-033: the core properties and a signature part, which Part 2 forbids a DOCTYPE in, by their bytes (an untouched part stays so)
+  pkg.doctypes = await forbiddenDoctypes(pkg, followsWord, ctm);
   // a relationships part read short (CR-032): a part only a lost relationship named isn't read, so its Override goes too, and a
   // save writes the package Word's save of its repair writes
   if (pkg.relationshipsNotRead.length > 0) for (const name of ctm.overridePartNames()) if (!pkg.getPart(name)) ctm.removeOverrideContentType(name);
   return pkg;
+}
+
+/**
+ * A DOCTYPE in the core properties or a digital signature part (CR-033; Part 2 §6.2.5 b), the DTD handling policy's section 6.1):
+ * the package refused, naming the part, unless the load's repair is `'word'` or `'all'`, when the core properties are read as
+ * absent, as Word 365 reads them (dtd-14-core-bare: no title), the part and its Override gone, and a signature part is read, as
+ * Word opens such a file (dtd2-91-signature). Read from the part's bytes, so it stays untouched.
+ */
+async function forbiddenDoctypes(pkg: OpcPackage, followsWord: boolean, ctm: ContentTypeManager): Promise<DoctypeWarning[]> {
+  const out: DoctypeWarning[] = [];
+  for (const part of [...pkg.parts]) {
+    const core = part.contentType === ContentTypes.PACKAGE_COREPROPERTIES;
+    if (!core && part.contentType !== ContentTypes.DIGITAL_SIGNATURE_XML_SIGNATURE_PART) continue;
+    if (!hasDoctype(decodeXmlText(await part.getBytes()))) continue;
+    const name = part.partName.name;
+    if (!followsWord) throw new DoctypeException(name, "the package is refused, unless Word 365's repair is followed (repair: 'word')");
+    if (core) {
+      part.owningRelationshipPart?.removePart(part.partName);
+      if (pkg.docPropsCorePart === part) pkg.docPropsCorePart = undefined;
+      ctm.removeOverrideContentType(part.partName);
+    }
+    out.push(doctypeWarning(name, part.contentType, presenceOf(), { repaired: core }));
+  }
+  return out;
 }
 
 /**
