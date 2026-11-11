@@ -1,6 +1,6 @@
 # CR-033: A DOCTYPE, read by this package and never by the platform's parser
 
-**Status:** Decided and implemented 2026-11-11. Unreleased. Jason's direction was: "DOCTYPE as per
+**Status:** Decided and implemented 2026-11-11. Released in 0.8.0 (2026-11-11). Jason's direction was: "DOCTYPE as per
 /home/jharrop/git/docx4j-portfolio/docs/dtd_handling_policy.md : refuse where the open xml requires refusal; for other parts,
 guard against malicious entity expansion and other attacks". He then decided the four points that left open (section 2).
 **Counterparts:**

@@ -1,7 +1,7 @@
 # CR-032: A relationships part that isn't well formed, read as Word's repair reads it (docx4j CR-075 D5, D6 and D8)
 
 **Status:** Decided and implemented 2026-11-10 (Jason: "commit, push, then fix the Two things 17.3.6 does that this package doesn't
-yet"; for this one, "docx4j's reading (Recommended)"). Unreleased. The port of docx4j CR-075's phase 4, released in docx4j
+yet"; for this one, "docx4j's reading (Recommended)"). Released in 0.8.0 (2026-11-11). The port of docx4j CR-075's phase 4, released in docx4j
 17.3.6 (`e2d51d1e2`), which CR-001 section 27 found unported.
 **Counterparts:** docx4j CR-075 D5, D6 and D8 (17.3.6); WD 0.76's ruling on WD 0.73's item (i) (portfolio `7c5ee35`); CR-031 here,
 whose `repair` decides the save; CR-025 here, whose `SaveLossException` and `checkLossOnSave` the save's gate shares. docx4j-python

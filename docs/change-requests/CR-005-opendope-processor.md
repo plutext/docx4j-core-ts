@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, released in 0.4.0 (2026-10-09); Word checks 37 and 38 run 2026-10-08, both holding; section 8.1 item 4 (loose inline content under a container is one paragraph; 2026-10-15, found by the editor) implemented, **released in 0.5.0** (2026-10-19); section 10 (a picture control with no picture in Word's form, docx4j's check 71, 2026-10-25) implemented, **released in 0.6.0** (2026-10-25); section 11 (Word fragments, `od:progid=Word.Document`, and Word's `w15`-mapped rich text over Flat OPC, resolved as Word 365 resolves them; the editor's ED-005 proposal 46, parts 1 and 2, accepted by Jason 2026-11-11) implemented 2026-11-11, unreleased
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, released in 0.4.0 (2026-10-09); Word checks 37 and 38 run 2026-10-08, both holding; section 8.1 item 4 (loose inline content under a container is one paragraph; 2026-10-15, found by the editor) implemented, **released in 0.5.0** (2026-10-19); section 10 (a picture control with no picture in Word's form, docx4j's check 71, 2026-10-25) implemented, **released in 0.6.0** (2026-10-25); section 11 (Word fragments, `od:progid=Word.Document`, and Word's `w15`-mapped rich text over Flat OPC, resolved as Word 365 resolves them; the editor's ED-005 proposal 46, parts 1 and 2, accepted by Jason 2026-11-11, with sections 11.6 and 11.7, `insertOoxml` as Word's) implemented 2026-11-11, **released in 0.8.0 (2026-11-11)**
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -692,7 +692,7 @@ drawing left as it is) is Word's too.
 
 ## 11. Word fragments (`od:progid=Word.Document`), and Word's own mapped rich text over Flat OPC (2026-11-11)
 
-**Status:** Implemented 2026-11-11, unreleased. This is the engine's half of the editor's ED-005 proposal 46 (parts 1 and 2,
+**Status:** Implemented 2026-11-11, released in 0.8.0 (2026-11-11). This is the engine's half of the editor's ED-005 proposal 46 (parts 1 and 2,
 with part 1's processor options). Jason accepted the proposal the same day with decisions (a) to (f) as recommended: "accept
 (a) to (f) as recommended; start implementation". The editor asked for this section on 2026-11-11.
 
