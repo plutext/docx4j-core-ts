@@ -622,8 +622,9 @@ with what phases B and D already do and what is still to be done:
    package or only its content. Recommendation: content plus the parts the content references
    (images, embedded objects) in this CR; style merging is what docx4j's MergeDocx does and is
    a separate product. *Reopened 2026-11-11 by the editor's ED-005 proposal 46: Word 365 resolves a Flat OPC chunk by a
-   simple rule (CR-005 section 11.1), not MergeDocx's, and CR-005 section 11's `importFlatOpc` implements it. Whether
-   `insertOoxml` takes it, and by default, is open for Jason (section 11.5).*
+   simple rule (CR-005 section 11.1), not MergeDocx's, and CR-005 section 11's `importFlatOpc` implements it. Jason, 2026-11-11:
+   Word's own `insertOoxml` is measured first through the portfolio's Word bridge, and its rule becomes the default. Done
+   2026-11-11, CR-005 section 11.6: Word's `insertOoxml` reconciles by the same rule, and so does this package's now.*
 6. Tagged template versus function for `wml`. Recommendation: both, the template calling the
    function; the template can interpolate typed values in place.
 7. Whether `xpath` should be an optional peer dependency (dynamic import when there is no

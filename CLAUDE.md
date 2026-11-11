@@ -30,7 +30,7 @@ So are CR-001 Phases C and D
 XHTML through the `html` module, and picture bindings; implemented 2026-10-08, released in 0.4.0) and its section 11 (Word fragments, the editor's
 ED-005 proposal 46 parts 1 and 2: a control tagged `od:progid=Word.Document` and Word's `w15`-mapped rich text over Flat OPC filled
 as Word 365 resolves docx4j's altChunk, styles, lists, notes and ids reconciled by Word's rule, or with that altChunk; implemented
-2026-11-11, unreleased), and CR-006 (`selectObjects` and
+2026-11-11, unreleased; its section 11.6, `insertOoxml` of a package reconciled by the same rule, held to Word's own insertOoxml), and CR-006 (`selectObjects` and
 `Body.select`, XPath over the tree, held to docx4j by 62 XPath goldens, one per fixture). CR-008 phase 1 (docx4j CR-034's colour merge rules in the
 catalogue, 2026-10-12) and CR-010 (every branch of `mc:AlternateContent` kept on load) are released in
 0.5.0 (2026-10-19), with the rest the CR index (`docs/change-requests/README.md`) lists for it.
@@ -147,7 +147,7 @@ src/model/color/  docx4j's org.docx4j.model.color (CR-008 phase 2): ResolvedColo
                   DrawingMLColors (transforms in document order, style references), SpreadsheetColors, StyleFill; ColorMath is docx4j's arithmetic
                   in its order (the luminance rounding depends on it); PropertyResolver.getThemeColors() and resolveColor/resolveFill/... use them
 src/model/content/ the content API in Office JS shapes: Body, Paragraph, Range (+hyperlink; two ends since CR-014 phase 1, story.mts its story's layout, spanEdits.mts its writes across paragraphs), Font, Table (+TableRow, TableCell; columns added and removed in Word's three layout modes, tableColumns.mts, CR-002 section 42), InlinePicture, ContentControl, Comment, TrackedChange, List (+ListItem; labels from the Emulator, one story walk per read or Body.listLabels() for all; NumberingFacade is pkg.numbering, the definition verbs without a paragraph), search;
-                  ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
+                  ooxml.mts is insertOoxml/insertXml (flat OPC in, referenced parts copied; a package's styles, lists and notes reconciled as Word 365's insertOoxml does, through fragments.mts's insertedContentOf, CR-005 section 11.6); comments.mts the comment plumbing (parts side in parts/wml/comments.mts);
                   tree.mts is the paragraph text model (segmentsOf in Office JS's characters, childrenOf; runItemsOf is re-exported from builders/wml); fragments, run mapping and traversal come from the objects package's builders/wml;
                   officeText.mts writes Office JS's characters back as the elements they read as (CR-002 section 60: officeItems, dropExcluded, forWriter);
                   tableRules.mts is docx4j's TableRules (endsWithParagraph, endWithParagraph: a cell ends with a paragraph as Word reads it), which

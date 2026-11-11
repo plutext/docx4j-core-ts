@@ -13,7 +13,7 @@ import * as f from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { hyperlink as hyperlinkOf } from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import { Namespaces } from '../../parts/Namespaces.mjs';
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
-import { contentOf } from './ooxml.mjs';
+import { insertedContentOf } from './fragments.mjs';
 import { markHolderInserted } from './tracking.mjs';
 import { officeMatches, wildcardMatchesAcross, refuseWildcardMarkReplacement, expandReplacement, paragraphMarkPieces, refuseMarkReplacement, type SearchOptions } from './search.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
@@ -551,7 +551,7 @@ export class Range {
     this.assertWritableSpan();
     const body = this.paragraph.parentBody;
     const preprocess = body.package_?.loadOptions.preprocessor;
-    const elements = await contentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: body.part });
+    const elements = await insertedContentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: body.part, package: body.package_ });
     if (elements.length === 0) return [];
     const only = elements.length === 1 && typeNameOf(elements[0]!) === 'org_docx4j_wml.P' ? elements[0]!.value as { content?: Element[] } : undefined;
     if (only) {

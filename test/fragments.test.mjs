@@ -437,3 +437,114 @@ test('what a run added is reported (created), so that a caller binding again can
     assert.deepEqual(chunk.created, { numIds: [], abstractNumIds: [], styleIds: [], parts: ['/word/chunk1.xml'] });
   } finally { restore(); }
 });
+
+// ------------------------------------------------------------------------------------------------ insertOoxml (section 11.6)
+
+// Word 365's own insertOoxml of the same package (the portfolio's bridge round insertooxml-46, Office JS through the check verb,
+// read back straight after the insert), in test/fragments/io46/ with a SHA-1 manifest.
+const io46 = join(dir, 'io46');
+const io46Manifest = JSON.parse(readFileSync(join(io46, 'manifest.json'), 'utf8'));
+const wordRun = (c) => JSON.parse(readFileSync(join(io46, `${c}.check-result.json`), 'utf8'));
+/** The package a case's script gave insertOoxml, as the script holds it. */
+const flatOf = (c) => JSON.parse(/const FLAT = (".*?");\n/s.exec(readFileSync(join(io46, `${c}.check-script.js`), 'utf8'))[1]);
+
+/** Each paragraph as Office JS's snapshot has it: text, style name, list string. */
+async function snapshotOf(pkg) {
+  const body = await pkg.getMainDocumentPart().getBody();
+  return body.paragraphs.map((p) => ({ text: p.text, style: p.style, list: p.isListItem ? p.listItem.listString : null }));
+}
+const wordSnapshot = (r) => r.after.paragraphs.map((p) => ({ text: p.text, style: p.style, list: p.list?.string ?? null }));
+
+async function io46Template() {
+  const restore = quiet();
+  try { return await OpcPackage.load(new Uint8Array(readFileSync(join(io46, 'io46-template-no-w15.docx')))); } finally { restore(); }
+}
+
+/** Word's paragraphs set beside ours: the plain text control (2), which Word filled from its Flat OPC node at the check's open, as ours. */
+const besideOurs = (word, ours) => word.map((p, i) => (p.text.startsWith('<?xml') ? ours[i] : p));
+
+test('insertOoxml: the round\'s files are as its manifest has them; the three cases that ran opened silently', () => {
+  for (const [name, sha1] of Object.entries(io46Manifest.files)) assert.equal(createHash('sha1').update(new Uint8Array(readFileSync(join(io46, name)))).digest('hex'), sha1, name);
+  for (const c of ['io46-1-before', 'io46-3-replace-control', 'io46-4-before-bare']) {
+    assert.equal(wordRun(c).inserted, true, c);
+    assert.equal(JSON.parse(readFileSync(join(io46, `${c}.result.json`), 'utf8')).opened, 'silent', c);
+  }
+  assert.equal(wordRun('io46-2-twice').inserted, false);
+});
+
+test('insertOoxml Before a paragraph reconciles as Word 365\'s does (io46-1): the fragment\'s styles copied, its list a new one, its footnote, one section', async () => {
+  const word = wordRun('io46-1-before');
+  const pkg = await io46Template();
+  const body = await pkg.getMainDocumentPart().getBody();
+  const at = body.paragraphs.find((p) => p.text === 'After the control.');
+  await at.getRange('Whole').insertOoxml(flatOf('io46-1-before'), 'Before');
+  const ours = await snapshotOf(pkg);
+  // Known difference, for Jason: Word joins the fragment's last paragraph to the paragraph it went Before ("...portrait
+  // A4.After the control."); this package puts the fragment's blocks before it whole
+  const joined = word.after.paragraphs.at(-1).text;
+  assert.equal(joined, "Last paragraph of the fragment. Its section is landscape A5; the document's is portrait A4.After the control.");
+  assert.deepEqual(ours.slice(-2).map((p) => p.text), ["Last paragraph of the fragment. Its section is landscape A5; the document's is portrait A4.", 'After the control.']);
+  const oursJoined = [...ours.slice(0, -2), { ...ours.at(-2), text: ours.at(-2).text + ours.at(-1).text }];
+  assert.deepEqual(oursJoined, besideOurs(wordSnapshot(word), oursJoined));
+  // the styles: the document's Heading 1, the fragment's own copied (Word also links a FootnoteTextChar, as in 46a)
+  const styles = await pkg.getMainDocumentPart().styleDefinitionsPart.getContents();
+  const ids = styles.style.map((s) => s.styleId);
+  for (const id of word.after.ooxml.styleIds.filter((s) => s !== 'FootnoteTextChar')) assert.ok(ids.includes(id) || ['DefaultParagraphFont', 'TableNormal', 'NoList'].includes(id), id);
+  assert.equal(ids.includes('FragmentNote') && ids.includes('FootnoteText') && ids.includes('FootnoteReference'), true);
+  // the lists: the document's numId 1 decimal, the fragment's a new one, upper Roman, as Word's nums have them
+  const numbering = await pkg.getMainDocumentPart().numberingDefinitionsPart.getContents();
+  const formatOf = (numId) => {
+    const num = numbering.num.find((n) => String(n.numId) === String(numId));
+    return numbering.abstractNum.find((a) => String(a.abstractNumId) === String(num.abstractNumId.val)).lvl[0].numFmt.val;
+  };
+  assert.deepEqual(word.after.ooxml.nums.map((n) => n.lvl0.numFmt), ['decimal', 'upperRoman']);
+  assert.deepEqual([formatOf(1), formatOf(2)], ['decimal', 'upperRoman']);
+  // the footnote, and the inner control with its tag and id
+  const notes = await pkg.getMainDocumentPart().footnotesPart.getContents();
+  assert.deepEqual(notes.footnote.filter((n) => !n.type || n.type === 'normal').map((n) => JSON.stringify(n).includes("The fragment's footnote.")), [true]);
+  assert.deepEqual(word.after.footnotes, ["\u0002 The fragment's footnote."]);
+  const controls = body.contentControlsIn('every').map((c) => [c.id, c.tag]);
+  for (const c of word.after.contentControls) assert.ok(controls.some(([id, tag]) => id === c.id && tag === c.tag), JSON.stringify(c));
+  assert.equal(word.after.sections, 1);
+});
+
+test('insertOoxml Replace in a control\'s paragraph holds what Word\'s ContentControl.insertOoxml Replace holds (io46-3), paragraph for paragraph', async () => {
+  const word = wordRun('io46-3-replace-control');
+  const pkg = await io46Template();
+  const body = await pkg.getMainDocumentPart().getBody();
+  const control = body.contentControlsIn('every').find((c) => c.title === 'Word fragment');
+  await control.paragraphs[0].insertOoxml(flatOf('io46-3-replace-control'), 'Replace');
+  const ours = await snapshotOf(pkg);
+  assert.deepEqual(ours, besideOurs(wordSnapshot(word), ours));
+});
+
+test('insertOoxml of a package without its styles and numbering parts (io46-4): a style it doesn\'t define reads as the default, its list a new one over Word\'s default', async () => {
+  const word = wordRun('io46-4-before-bare');
+  const flat = flatOf('io46-4-before-bare');
+  assert.doesNotMatch(flat, /\/word\/styles\.xml|\/word\/numbering\.xml/);
+  const pkg = await io46Template();
+  const body = await pkg.getMainDocumentPart().getBody();
+  await body.paragraphs.find((p) => p.text === 'After the control.').getRange('Whole').insertOoxml(flat, 'Before');
+  const ours = await snapshotOf(pkg);
+  const oursJoined = [...ours.slice(0, -2), { ...ours.at(-2), text: ours.at(-2).text + ours.at(-1).text }];
+  assert.deepEqual(oursJoined, besideOurs(wordSnapshot(word), oursJoined));
+  // the heading's Heading1, which the package doesn't define, is gone, though the document defines one
+  assert.equal(ours.find((p) => p.text.startsWith('Fragment heading')).style, 'Normal');
+  const styles = (await pkg.getMainDocumentPart().styleDefinitionsPart.getContents()).style.map((s) => s.styleId);
+  assert.equal(styles.includes('FragmentNote'), false);
+  // the list: a new numId over Word's nine decimal levels, as Word made it, the document's list unbroken
+  const numbering = await pkg.getMainDocumentPart().numberingDefinitionsPart.getContents();
+  const added = numbering.abstractNum.at(-1);
+  assert.deepEqual(added.lvl.map((l) => [l.numFmt.val, l.lvlText.val, Number(l.pPr.ind.left), Number(l.pPr.ind.hanging)]),
+    Array.from({ length: 9 }, (_, l) => ['decimal', `%${l + 1}.`, 720 * (l + 1), 720]));
+  assert.deepEqual(word.after.ooxml.nums.map((n) => [n.numId, n.lvl0.numFmt]), [['1', 'decimal'], ['2', 'decimal']]);
+});
+
+test('insertOoxml of a bare fragment is as it was: nothing reconciled, nothing to reconcile', async () => {
+  const pkg = await io46Template();
+  const body = await pkg.getMainDocumentPart().getBody();
+  const before = (await pkg.getMainDocumentPart().styleDefinitionsPart.getContents()).style.length;
+  await body.insertOoxml('<w:p><w:pPr><w:pStyle w:val="Unknown"/></w:pPr><w:r><w:t>bare</w:t></w:r></w:p>', 'End');
+  assert.equal((await pkg.getMainDocumentPart().styleDefinitionsPart.getContents()).style.length, before);
+  assert.equal(body.paragraphs.at(-1).text, 'bare');
+});

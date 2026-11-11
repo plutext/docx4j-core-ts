@@ -1,0 +1,58 @@
+{
+ "word": "16.0.20326.20232",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "check-result.json",
+   "bytes": 52762,
+   "sha256": "684feddaa85aad536d41ac32123feec5101acf85e683a12b6be713d74788ddd4"
+  }
+ ],
+ "seconds": 5.7,
+ "timedOut": false,
+ "verb": "check",
+ "input": "io46-template-no-w15.docx",
+ "opens": [
+  {
+   "format": null,
+   "opened": "silent",
+   "name": "io46-template-no-w15.docx",
+   "readOnly": false,
+   "saved": true
+  }
+ ],
+ "saves": [],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.17
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "check": {
+  "answered": true,
+  "reports": [
+   "{\"stage\":\"office-ready\",\"detail\":\"{\\\"host\\\":\\\"Word\\\",\\\"version\\\":\\\"16.0.20326.20232\\\",\\\"platform\\\":\\\"PC\\\"}\"}",
+   "{\"stage\":\"running\",\"detail\":null}",
+   "{\"stage\":\"answered\",\"detail\":null}"
+  ],
+  "refusedRequests": 0
+ },
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "22479f7",
+  "installedAt": "2026-11-10T15:36:01"
+ }
+}

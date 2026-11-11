@@ -880,9 +880,67 @@ Seven mutants of the import, each caught: notes not copied, lists not copied, st
   `BoundValues`), the escaped package, where Word 365 shows the control's placeholder (46c control (2), both runs). The
   bind's text pass leaves such a control (`holdsFlatOpc`), so only the reading differs. It is a reading shared with docx4j's
   text model, so it goes to the WD and Jason, not changed here. `fragments.test.mjs` pins it.
-- **`insertOoxml` doesn't reconcile yet.** Part 2 has `insertOoxml` gain the same reconciliation, which reopens CR-002 open
-  question 5. `importFlatOpc` is what it would call. **For Jason:**
-  - whether `insertOoxml` reconciles by default, as Word's own `insertOoxml` may (unmeasured), or only on request;
-  - if on request, where the switch lives: a package setting, since Office JS's `insertOoxml` takes no options.
+- **`insertOoxml`**: done, section 11.6.
+- **Part 6(b), done 2026-11-11** (the editor, through the bridge, over `f3ce1cc`, on 46c): all three outputs opened silently,
+  with no repair.
+  - The resolved route (46d): Word's save equals this package's output paragraph for paragraph, and equals Word's own
+    resolution of 46a and fill of 46c; Word refilled the `w15` control on open to the same content.
+  - The altChunk route (46e): resolved as 46a's.
+  - `keepSourceFormatting` (46f): equals 46b's `w:matchSrc`.
+  - Word added only its usual DefaultParagraphFont, TableNormal and NoList, not FootnoteTextChar (which it makes only when it
+    resolves an altChunk itself), and merged the two identical pictures into one part. So nothing left out above is anything
+    Word needs.
+  - The saves are the editor's (`fixtures/fragments/46d-word365.*` to `46f-word365.*`, its branch `fragments-engine` at
+    `5ca9643`).
+
+### 11.6 `insertOoxml`, as Word 365's (2026-11-11)
+
+**Decided** (Jason: "insertOoxml - check word first - ask portfolio to do it via word bridge"). Word's own `insertOoxml` was
+measured first, and its rule became the default. CR-002 open question 5 is settled by it.
+
+**Word's run** was the portfolio's bridge round `insertooxml-46`, Word 365 16.0.20326.20232, the `-2` run of 2026-11-11. It used
+the check verb: Office JS's own `insertOoxml` in a task pane, read back straight after the insert. The input was
+`io46-template-no-w15.docx`, 46c with only its `w15` control removed, which Word would otherwise have filled from the same
+fragment on open. The files are in `test/fragments/io46/` with a SHA-1 manifest. Every case opened silently.
+- **Case 1, `Range.insertOoxml` Before a paragraph:** the merge is 46a's.
+  - The document's Heading 1 is kept.
+  - FragmentNote, FootnoteText and FootnoteReference are copied, and Word adds FootnoteTextChar.
+  - The fragment's list becomes a new `w:num` over its own `w:abstractNum`, items I. and II., and the document's list stays
+    1, 2, 3.
+  - The footnote is copied, the inner control kept with its tag and `w:id`, and the landscape section dropped.
+- **Case 3, `ContentControl.insertOoxml` Replace:** the same merge, inside the control.
+- **Case 4, the package without its styles and numbering parts:**
+  - The fragment's Heading 1 paragraph reads as Normal, though the document defines Heading 1: a style the package doesn't
+    define reads as the default.
+  - Its list becomes a new one over Word's default definition (nine decimal levels, `%1.` to `%9.`, indented 720 twips more each
+    with a hanging 720 and a tab stop there), not the document's list of the same number.
+  - The footnote is still copied.
+- **Case 2**, the package inserted twice, didn't run its second insert: the script looked for a paragraph the first insert had
+  joined (below). It records case 1's state.
+
+**As built:**
+- `Body`, `Paragraph` and `Range.insertOoxml` read a `pkg:package` through `insertedContentOf`, which calls `importFlatOpc`
+  wherever the body is in a WordprocessingML package. A bare fragment, or a body with no such package, takes `contentOf` as before.
+- `importFlatOpc` gained case 4's two rules, so the bind pass reads such a package the same way:
+  - a style reference the package doesn't define is removed;
+  - a list it names and doesn't define is a new one over Word's default.
+
+  The old behaviour joined the document's list of that number and kept the reference.
+- Tests in `fragments.test.mjs`:
+  - case 1, held to Word's paragraphs, styles, lists by format, footnote, controls and sections;
+  - case 3, paragraph for paragraph;
+  - case 4: the style read as Normal, Word's nine levels, the document's list unbroken;
+  - a bare fragment as before.
+
+  Three mutants, each caught: insertOoxml not reconciled, undefined styles kept, no default list.
+
+**Known differences, for Jason:**
+- **Word joins the package's last paragraph to the paragraph it is inserted Before** (case 1: "...portrait A4.After the
+  control.", one paragraph, as a paste does). This package inserts the package's blocks before that paragraph, whole, as it did.
+  Which paragraph's properties the joined paragraph keeps isn't measured: both were plain here. The tests compare around it, and
+  pin both shapes.
+- **The plain text control (2) in Word's run showed the escaped Flat OPC as its text**, filled from its node at the check's
+  open. In 46c's saves, beside the `w15` control, it showed its placeholder. This was a check's open for editing, not a save's,
+  so it is a lead for REQ-509 (section 11.5), not a result. The tests set that one paragraph beside this package's own.
 - **Part 6(b), the engine's two outputs through the Word bridge, is the portfolio's** once part 1 is in a release. The
   route-(i) save of 46c (both controls) and the altChunk route's are this package's to give it.

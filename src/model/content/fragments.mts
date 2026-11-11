@@ -13,12 +13,16 @@
 // - **Dropped**: the final section (silently, as Word does), a section break inside the content, and comments' ranges and
 //   references (unmeasured: the check's fragment held none), each counted.
 // - **Ids**: a bookmark's, a control's `w:id` and a drawing's `wp:docPr` id made fresh only where the document already uses it.
+// - **What the package names and doesn't define** (Word's `insertOoxml`, insertooxml-46 case 4): a style reference reads as the
+//   default, so it goes; a list becomes a new one over Word's default definition, never the document's list of that number.
 // - **`keepSourceFormatting`** (Word's `w:matchSrc`, 46b): the body content's paragraph and character styles written as direct
 //   formatting, `w:pStyle` and `w:rStyle` removed, the styles still copied; a note's content keeps its styles, as Word's did.
 //
-// Not merged, as Word merges none of them: the theme, the fonts and the document defaults.
+// Not merged, as Word merges none of them: the theme, the fonts and the document defaults. `insertOoxml` reads a package through
+// this too (`insertedContentOf`, CR-005 section 11.6), as Word 365's `insertOoxml` does by the same rule.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
-import { deepCopy } from '@docx4j/generated-objects-ts';
+import { deepCopy, unmarshalNode } from '@docx4j/generated-objects-ts';
+import { parseXml } from '../../xml/dom.mjs';
 import { sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
 import { PartName } from '../../opc/PartName.mjs';
 import type { Part } from '../../parts/Part.mjs';
@@ -26,7 +30,7 @@ import type { XmlPart } from '../../parts/XmlPart.mjs';
 import { applyPPr, applyRPr, applyStyleLevel, isEmptyPPr, isEmptyRPr } from '../properties/styleUtil.mjs';
 import type { PropertyResolver } from '../properties/PropertyResolver.mjs';
 import { linkParents, type Element } from './tree.mjs';
-import { loadFlatOpc, copyReferencedParts, rewriteRelationshipIds } from './ooxml.mjs';
+import { loadFlatOpc, copyReferencedParts, rewriteRelationshipIds, contentOf, isFlatOpc } from './ooxml.mjs';
 
 const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
@@ -55,6 +59,8 @@ export interface FragmentOptions {
   target: Part;
   /** Word's `w:matchSrc`: the content's styles as direct formatting (the styles are copied all the same). */
   keepSourceFormatting?: boolean;
+  /** The DOM preprocessor the source package is loaded with (the document's MCE one, as `contentOf`'s). */
+  preprocess?: (doc: Document) => void;
 }
 
 /**
@@ -238,6 +244,25 @@ function stylesUsedBy(trees: unknown[]): Set<string> {
 }
 
 /**
+ * A style reference the fragment doesn't define reads as its default, so it goes, as Word 365's `insertOoxml` takes it (its
+ * insertooxml-46 round, case 4: a package without its styles part, its Heading 1 paragraph read as Normal though the document
+ * defines Heading 1). The count removed.
+ */
+function dropUndefinedStyleReferences(trees: unknown[], sourceStyles: wml.Style[]): number {
+  const defined = new Set(sourceStyles.map((s) => s.styleId).filter((id): id is string => id !== undefined));
+  let removed = 0;
+  for (const tree of trees) {
+    visit(tree, (value) => {
+      for (const key of STYLE_REFERENCES) {
+        const ref = value[key] as { val?: string } | undefined;
+        if (ref && typeof ref === 'object' && typeof ref.val === 'string' && !defined.has(ref.val)) { delete value[key]; removed++; }
+      }
+    });
+  }
+  return removed;
+}
+
+/**
  * The source's styles to copy: each used style the document lacks, with its `basedOn`, `link` and `next` chain (each of those
  * the document lacks). A style both define is the document's, and its chain is the document's too.
  */
@@ -273,6 +298,22 @@ function numPrsIn(trees: unknown[]): wml.PPrBase.NumPr[] {
 
 const NUMBERING_XML = `<w:numbering xmlns:w="${W}"/>`;
 
+/**
+ * Word 365's list for a `w:numId` a fragment names and doesn't define (its insertooxml-46 round, case 4: a package without its
+ * numbering part): nine decimal levels, `%1.` to `%9.`, each indented 720 twips more with a hanging 720 and a tab stop there, as
+ * Word wrote it; the text model's default definition (REQ-510) in Word's own form.
+ */
+const WORD_DEFAULT_LIST_XML = `<w:numbering xmlns:w="${W}"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="multilevel"/>`
+  + [0, 1, 2, 3, 4, 5, 6, 7, 8].map((l) => `<w:lvl w:ilvl="${l}"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%${l + 1}."/>`
+    + `<w:lvlJc w:val="left"/><w:pPr><w:tabs><w:tab w:val="num" w:pos="${720 * (l + 1)}"/></w:tabs><w:ind w:left="${720 * (l + 1)}" w:hanging="720"/></w:pPr></w:lvl>`).join('')
+  + '</w:abstractNum></w:numbering>';
+
+let wordDefaultList: Promise<wml.Numbering.AbstractNum> | undefined;
+function wordDefaultAbstract(): Promise<wml.Numbering.AbstractNum> {
+  wordDefaultList ??= (async () => ((await unmarshalNode(parseXml(WORD_DEFAULT_LIST_XML))).value as wml.Numbering).abstractNum![0]!)();
+  return wordDefaultList;
+}
+
 function hexId(): string {
   return Math.floor(Math.random() * 0x7fffffff).toString(16).toUpperCase().padStart(8, '0');
 }
@@ -299,19 +340,19 @@ async function copyNumbering(trees: unknown[], source: FragmentMainPart, main: F
   let nextAbstract = Math.max(-1, ...abstracts.map((a) => Number(a.abstractNumId))) + 1;
   let nextNum = Math.max(0, ...nums.map((n) => Number(n.numId))) + 1;
   const mapped = new Map<string, number | undefined>();
-  let unknown = 0;
   for (const numPr of numPrs) {
     const key = String(numPr.numId!.val);
     if (!mapped.has(key)) {
       const num = sourceNumbering?.num?.find((n) => String(n.numId) === key);
       const abstract = num ? sourceNumbering?.abstractNum?.find((a) => String(a.abstractNumId) === String(num.abstractNumId?.val)) : undefined;
-      if (!num || !abstract) { mapped.set(key, undefined); unknown++; continue; }
-      const abstractCopy = deepCopy(abstract) as wml.Numbering.AbstractNum;
+      // a list the fragment names and doesn't define: a new one over Word's default, as Word makes it (case 4), never the
+      // document's list of the same number
+      const abstractCopy = deepCopy(abstract ?? await wordDefaultAbstract()) as wml.Numbering.AbstractNum;
       abstractCopy.abstractNumId = nextAbstract++ as never;
       abstractCopy.nsid = { TYPE_NAME: 'org_docx4j_wml.CTLongHexNumber', val: hexId() } as never;
       abstracts.push(abstractCopy);
       linkParents(abstractCopy, numbering);
-      const numCopy = deepCopy(num) as wml.Numbering.Num;
+      const numCopy = (num ? deepCopy(num) : { TYPE_NAME: 'org_docx4j_wml.Numbering.Num' }) as wml.Numbering.Num;
       numCopy.numId = nextNum++ as never;
       numCopy.abstractNumId = { ...(numCopy.abstractNumId ?? { TYPE_NAME: 'org_docx4j_wml.Numbering.Num.AbstractNumId' }), val: abstractCopy.abstractNumId } as never;
       nums.push(numCopy);
@@ -323,7 +364,6 @@ async function copyNumbering(trees: unknown[], source: FragmentMainPart, main: F
     const id = mapped.get(key);
     if (id !== undefined) numPr.numId!.val = id as never;
   }
-  count(dropped, 'list references naming no list', unknown);
 }
 
 // ------------------------------------------------------------------------------------------------ ids
@@ -462,7 +502,7 @@ export async function importFlatOpc(ooxml: string, host: FragmentTarget, options
   const created: FragmentCreated = { numIds: [], abstractNumIds: [], styleIds: [], parts: [] };
   const main = host.getMainDocumentPart();
   const before = partNamesOf(main.package);
-  const { source, content } = await loadFlatOpc(ooxml);
+  const { source, content } = await loadFlatOpc(ooxml, options.preprocess);
   if (content.length === 0) return { content, dropped, created };
   const sourceMain = source.getMainDocumentPart() as unknown as FragmentMainPart;
   dropUnplaced(content, dropped);
@@ -472,6 +512,7 @@ export async function importFlatOpc(ooxml: string, host: FragmentTarget, options
 
   // the styles the content and its notes use, before keepSourceFormatting takes the content's references away
   const sourceStyles = sourceMain.styleDefinitionsPart ? ((await sourceMain.styleDefinitionsPart.getContents()).style ?? []) : [];
+  dropUndefinedStyleReferences([content, notes], sourceStyles);
   const existingStyles = main.styleDefinitionsPart ? await main.styleDefinitionsPart.getContents() : undefined;
   const idsOf = (styles: wml.Styles | undefined): Set<string> => new Set((styles?.style ?? []).map((s) => s.styleId).filter((id): id is string => id !== undefined));
   let toCopy = stylesToCopy(stylesUsedBy([content, notes]), sourceStyles, idsOf(existingStyles));
@@ -495,6 +536,26 @@ export async function importFlatOpc(ooxml: string, host: FragmentTarget, options
   await host.refresh();
   created.parts = [...partNamesOf(main.package)].filter((name) => !before.has(name));
   return { content, dropped, created };
+}
+
+/** The package a body is in as the import's target, where it can be one (a WordprocessingML package); else undefined. */
+export function fragmentTargetOf(pkg: unknown): FragmentTarget | undefined {
+  const p = pkg as Partial<FragmentTarget> | undefined;
+  return p && typeof p.ensureStyleDefinitionsPart === 'function' && typeof p.refresh === 'function' && typeof p.getMainDocumentPart === 'function'
+    ? p as FragmentTarget : undefined;
+}
+
+/**
+ * What `insertOoxml` inserts (CR-002 open question 5, decided by Word's own run: CR-005 section 11.6). A flat OPC package's body is
+ * read into the document as Word 365's `insertOoxml` reads it, its styles, lists and notes reconciled by `importFlatOpc`, where
+ * the body is in a WordprocessingML package; a bare fragment, or a package inserted into a body with none, as `contentOf` reads it.
+ */
+export async function insertedContentOf(ooxml: string, options: { preprocess?: ((doc: Document) => void) | undefined; target?: Part | undefined; package?: unknown }): Promise<Element[]> {
+  const host = fragmentTargetOf(options.package);
+  if (isFlatOpc(ooxml) && host && options.target) {
+    return (await importFlatOpc(ooxml, host, { target: options.target, ...(options.preprocess ? { preprocess: options.preprocess } : {}) })).content;
+  }
+  return contentOf(ooxml, { ...(options.preprocess ? { preprocess: options.preprocess } : {}), ...(options.target ? { target: options.target } : {}) });
 }
 
 /** A free part name beside `beside`'s: `<dir>/<stem>N<ext>`, N from 1. */

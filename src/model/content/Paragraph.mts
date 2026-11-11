@@ -30,7 +30,7 @@ import { sdt as sdtOf, nextSdtId, sdtProperty } from '@docx4j/generated-objects-
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, picturesIn, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { showPicturePlaceholder } from '../customxml/picturePlaceholder.mjs';
-import { contentOf } from './ooxml.mjs';
+import { insertedContentOf } from './fragments.mjs';
 import { commentApi, type CommentContent, type CommentOptions } from './comments.mjs';
 import type { Comment } from './Comment.mjs';
 import { ChangeTracker, copyRPr, markDeleted, toDeletedText, highestAnnotationId, canonical, restorePPr, wrapInsertedRuns, markHolderInserted, pruneParagraphProperties, markEquationDeleted, equationRevisionIn, type TrackingHost } from './tracking.mjs';
@@ -491,7 +491,7 @@ export class Paragraph {
   async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
     this.assertWritable();
     const preprocess = this.parentBody.package_?.loadOptions.preprocessor;
-    const elements = await contentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: this.parentBody.part });
+    const elements = await insertedContentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: this.parentBody.part, package: this.parentBody.package_ });
     if (elements.length === 0) return [];
     const only = elements.length === 1 && typeNameOf(elements[0]!) === 'org_docx4j_wml.P' ? (elements[0]!.value as wml.P) : undefined;
     if (only && (location === 'Start' || location === 'End')) {

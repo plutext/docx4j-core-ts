@@ -19,6 +19,7 @@ import { sdt as sdtOf, nextSdtId } from '@docx4j/generated-objects-ts/builders/w
 import { controlIdScope, sdtKindFor, declareSdtExtensions } from '../customxml/insert.mjs';
 import { InlinePicture, addImage, writableWidthEmu, type InlinePictureOptions } from './InlinePicture.mjs';
 import { contentOf } from './ooxml.mjs';
+import { insertedContentOf } from './fragments.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { type CellEnd, wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph, endCellsWithParagraphs } from './tableRules.mjs';
 import { keepCellMarkLast } from './spanEdits.mjs';
@@ -483,13 +484,14 @@ export class Body {
   /**
    * Word's `insertOoxml`: a flat OPC `pkg:package` string, whose body content is inserted with
    * the parts it references (images, embedded objects) copied into this package under fresh
-   * names and relationship ids; styles and numbering are not merged (CR-002 open question 5).
+   * names and relationship ids, and its styles, lists and notes reconciled as Word 365's `insertOoxml` reconciles them
+   * (CR-005 section 11.6, Word's insertooxml-46 round; CR-002 open question 5).
    * A bare `w:p` / `w:tbl` fragment is accepted too, as `insertXml` takes. Returns the views of
    * what was inserted, as `insertXml` does, since a package may bring several blocks.
    */
   async insertOoxml(ooxml: string, location: 'Start' | 'End' | 'Replace' | 'Before' | 'After', target?: Paragraph | BlockElement | Address): Promise<(Paragraph | BlockElement)[]> {
     this.assertWritable();
-    const elements = await contentOf(ooxml, { preprocess: this.preprocessor(), target: this.part });
+    const elements = await insertedContentOf(ooxml, { preprocess: this.preprocessor(), target: this.part, package: this.package_ });
     if (location === 'Replace') {
       assertControlHolds(this, this.container, [], elements, 'GeneralException');   // before the clear (CR-002 section 61)
       // In a cell, what ends with a table goes in before the cell's last paragraph, which stays, emptied, as Word
