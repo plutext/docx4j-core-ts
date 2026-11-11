@@ -2812,6 +2812,34 @@ blocked it: every difference is one its install fixes (its ED-008 section 8.8, i
 exports: UPSTREAM-24's, which `8929de1` had already made, and UPSTREAM-25's, made for this release at `120dcbf`
 (section 60.9). CI passed on `bb653ea` and on the version commit.
 
+**0.8.0 was released on 2026-11-11** (tag `0.8.0` at `3303cdb`, published by `push-to-npm.yml` from the GitHub
+release, run 42953859503, with SLSA provenance, sigstore log index 3801196582). The tarball's shasum, `41605860`, is the
+one a `npm pack --dry-run` of the version commit gave after a clean `npm ci`, typecheck and 2,028 of 2,028 tests, 358
+files. A clean consumer install from npm, which brought `@docx4j/generated-objects-ts` 0.8.0 and `@docx4j/jsonix`
+3.13.0, was smoke-tested with `xpath` beside it, the package's optional peer for custom XML: Word fragments bound, a
+package inserted by `insertOoxml`, a DOCTYPE's entity expanded with `xml.doctype`, a relationships part that isn't well
+formed read short and its save refused, and `./node`, by the package's name. It carries:
+- CR-005 section 11 with sections 11.6 and 11.7: Word fragments, and `insertOoxml` reconciling and placing a package as
+  Word 365's own does. That settles open question 5, measured through the portfolio's bridge rounds insertooxml-46 and
+  insertooxml-join;
+- CR-032 and CR-033;
+- CR-001 section 27, every golden recut from docx4j 17.3.6.
+
+It is over `@docx4j/generated-objects-ts` ^0.8.0, unchanged (Jason: "i think we'll release This package first", leaving
+CR-028 phase 2 for the objects package's 0.9.0; "start the 0.8.0 steps"; "publish"). It is a minor version, and the
+release notes set out first what now behaves differently:
+- `insertOoxml` merges a package's styles, lists and notes and joins its paragraphs as Word does, with no switch
+  (Jason: "i don't think we need an opt-out switch");
+- `applyBindings` fills Word's own `w15` rich text over Flat OPC;
+- a DOCTYPE is refused where ECMA-376 Part 2 forbids one, and read within limits elsewhere;
+- a relationships part that isn't well formed is read short, and its save refused unless `repair` is `'word'`.
+
+The editor ran its suites against `75ab026` before the release and nothing blocked it. The one change it needed, its
+companion's `insert_ooxml` keeping whole blocks at a container's edges now that `Start` and `End` join, is on its side
+(its `8da05e8`). It asked for no exports. After the release it installed 0.8.0 from npm, every suite passing (its
+`46efb66`), which completes its ED-005 proposal 46. CI passed on `75ab026` and on the version commit, on Node 18, 20
+and 22.
+
 **0.5.0 was released on 2026-10-19** (tag `0.5.0` at `05e1370`, published by `push-to-npm.yml`
 from the GitHub release; the tarball checked identical, file for file, to a pack of the built tag, and a
 clean consumer install smoke-tested with the jsonix factory compiled strict) with sections 43 to 52
