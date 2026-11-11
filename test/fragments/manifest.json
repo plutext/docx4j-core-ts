@@ -1,0 +1,15 @@
+{
+ "source": "docx4j-ts-editor c71ebd6, packages/editor-model/test/fixtures/fragments/ (ED-005 proposal 46, part 6(a)); README.md copied as EDITOR-README.md; the PDFs and the Compatibility Checker screenshot not copied",
+ "files": {
+  "46a-altchunk.docx": "28a96e6d53b75ce468d807657e3dfd778fc2c24d",
+  "46a-word365-mode12.docx": "dad8da42e38ad7ea39168b4a0112588a1e2850ab",
+  "46a-word365.docx": "7b2c5b158d16fb100cb772bf3ce78dc5c8f8a543",
+  "46b-altchunk-matchsrc.docx": "0abd7d3ead51e747cc8ec4cd10f9ecba93d4fe72",
+  "46b-word365-mode12.docx": "62adc1509d70ab653193d01a5c63740c00749dab",
+  "46b-word365.docx": "76541d82165f32c18ca4a5650e18fccebc8b8966",
+  "46c-template.docx": "e78667a55dfb6d141d739956426281557498f5b0",
+  "46c-word365-mode12.docx": "b104d235928d1a78f0f63b4b20527021840cd8bf",
+  "46c-word365.docx": "66e47d076d9a07605a43a3d3ccf434e4f7e9fa8e",
+  "EDITOR-README.md": "ab0789d5482786841d2e7348d367d1ac8bc75767"
+ }
+}

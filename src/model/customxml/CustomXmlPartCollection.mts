@@ -21,6 +21,7 @@ import type { XPathEngine } from './xpath.mjs';
 import { applyBindingsTo, updateFromControls, type BindingResult } from './bindings.mjs';
 import { applyXhtmlBindingsTo, isXhtmlBound, type XhtmlHost, type XhtmlBindingOptions } from './xhtml.mjs';
 import { applyPictureHandlersTo, updateFromPictureControls } from './pictures.mjs';
+import { applyFlatOpcBindingsTo, isFragmentBound, type FragmentHost, type FragmentBindingOptions } from './fragments.mjs';
 import { StoreItemResolver, type StoreItemResolution } from './storeItems.mjs';
 import { inUnreadBranch, writingEveryBranch } from '../content/tree.mjs';
 
@@ -39,6 +40,8 @@ export interface CustomXmlHost {
   customXmlRelationshipSource(): Part;
   /** The package, for the XHTML pass (list definitions, styles, relationships); absent, XHTML controls are left and noted. */
   readonly xhtmlHost?: XhtmlHost;
+  /** The package, for the Word fragment pass (its styles, lists, notes and parts); absent, such controls are left and noted. */
+  readonly fragmentHost?: FragmentHost;
   /** The package's property resolver, made if need be: a date control without `w:lid` is shown in its document default language (CR-020 D5). */
   getPropertyResolver?(): Promise<unknown>;
 }
@@ -209,7 +212,7 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
    * which is what Word does when it opens the document. Unmarshals the main document part (and the
    * headers and footers it has) and parses the custom XML parts.
    */
-  async applyBindings(options: { html?: XhtmlBindingOptions } = {}): Promise<BindingResult> {
+  async applyBindings(options: { html?: XhtmlBindingOptions; fragments?: FragmentBindingOptions } = {}): Promise<BindingResult> {
     await this.load();
     try {
       await this.host.getPropertyResolver?.();
@@ -224,14 +227,17 @@ export class CustomXmlPartCollection implements CustomXmlPartOwner, CustomXmlPar
     return result;
   }
 
-  /** The three passes over some controls: the text bindings, the pictures, the XHTML. */
-  private async bind(controls: ContentControl[], options: { html?: XhtmlBindingOptions }): Promise<BindingResult> {
+  /** The four passes over some controls: the text bindings, the pictures, the XHTML, the Word fragments. */
+  private async bind(controls: ContentControl[], options: { html?: XhtmlBindingOptions; fragments?: FragmentBindingOptions }): Promise<BindingResult> {
     const result = writingEveryBranch(() => applyBindingsTo(controls));
     // od:Handler=picture through the tag's od:xpath entry (CR-005 section 9): after the text bindings, which took the picture controls.
     writingEveryBranch(() => applyPictureHandlersTo(controls, this, result));
     // Escaped XHTML through the tag's od:xpath entry (CR-005 section 8.2): after the text bindings, asynchronous.
     if (this.host.xhtmlHost) await applyXhtmlBindingsTo(controls, this, this.host.xhtmlHost, result, options.html ?? {});
     else if (controls.some(isXhtmlBound)) (result.notes ??= []).push('XHTML-bound controls left: the collection has no package to make their lists, styles and links');
+    // Word fragments, od:progid=Word.Document and Word's own w15-mapped rich text over Flat OPC (CR-005 section 11): last, asynchronous.
+    if (this.host.fragmentHost) await applyFlatOpcBindingsTo(controls, this, this.host.fragmentHost, result, options.fragments ?? {});
+    else if (controls.some(isFragmentBound)) (result.notes ??= []).push('Word fragment controls left: the collection has no package to take their styles, lists and parts');
     return result;
   }
 

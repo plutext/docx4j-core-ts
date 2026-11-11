@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, released in 0.4.0 (2026-10-09); Word checks 37 and 38 run 2026-10-08, both holding; section 8.1 item 4 (loose inline content under a container is one paragraph; 2026-10-15, found by the editor) implemented, **released in 0.5.0** (2026-10-19); section 10 (a picture control with no picture in Word's form, docx4j's check 71, 2026-10-25) implemented, **released in 0.6.0** (2026-10-25)
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, released in 0.4.0 (2026-10-09); Word checks 37 and 38 run 2026-10-08, both holding; section 8.1 item 4 (loose inline content under a container is one paragraph; 2026-10-15, found by the editor) implemented, **released in 0.5.0** (2026-10-19); section 10 (a picture control with no picture in Word's form, docx4j's check 71, 2026-10-25) implemented, **released in 0.6.0** (2026-10-25); section 11 (Word fragments, `od:progid=Word.Document`, and Word's `w15`-mapped rich text over Flat OPC, resolved as Word 365 resolves them; the editor's ED-005 proposal 46, parts 1 and 2, accepted by Jason 2026-11-11) implemented 2026-11-11, unreleased
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -689,3 +689,200 @@ differently. It is left as it is unless the ports' saves need to agree part for 
 
 A control in the form is honoured as it is, so the rebind rule above (a control already showing its placeholder over a
 drawing left as it is) is Word's too.
+
+## 11. Word fragments (`od:progid=Word.Document`), and Word's own mapped rich text over Flat OPC (2026-11-11)
+
+**Status:** Implemented 2026-11-11, unreleased. This is the engine's half of the editor's ED-005 proposal 46 (parts 1 and 2,
+with part 1's processor options). Jason accepted the proposal the same day with decisions (a) to (f) as recommended: "accept
+(a) to (f) as recommended; start implementation". The editor asked for this section on 2026-11-11.
+
+**Specification:** "Word Fragments": the control receives a Word document serialised as Flat OPC (`pkg:package`), escaped
+as text in the data element.
+- REQ-059: the control's content is replaced with a `w:altChunk` whose part holds the Flat OPC, or with the equivalent
+  WordprocessingML.
+- REQ-060: the control is block-level or in a table cell.
+- Controls inside a fragment aren't bound, and fragments don't nest.
+
+**Counterpart:** docx4j's `BindingTraverserXSLT.convertFlatOPC` (the altChunk route) and
+`BindingTraverserCommonImpl.applyImportedContent` (where the content goes).
+
+### 11.1 What Word does (the editor's check, part 6(a))
+
+The goldens are in `test/fragments/`, copied unedited from the editor's `c71ebd6`
+(`packages/editor-model/test/fixtures/fragments/`) with a SHA-1 manifest. Its README is copied as `EDITOR-README.md`. The
+inputs were built by hand as XML and run through the portfolio's Word bridge (`22479f7`) in Word 365, in compatibility modes
+12 and 15. Every file opened silently.
+
+- **46a** (docx4j's altChunk inside the `od:progid` control): Word resolved the chunk, and the control stayed around the result
+  with its tag and `w:id`.
+  - **Styles:** a style both define is the document's (Heading 1). A style the document lacks is copied (FragmentNote,
+    FootnoteText, FootnoteReference). Word also makes a linked FootnoteTextChar.
+  - **Lists:** the fragment's list became a new `w:num` over a new `w:abstractNum`, its items I and II, and the document's
+    list went on at 3.
+  - **Kept:** the footnote, in a notes part Word made; the picture, as a new part; the table; the inner control, with its tag
+    and `w:id`.
+  - **Dropped:** the fragment's landscape section.
+- **46b** (the same, with `w:matchSrc`): as 46a, but the fragment's paragraph and character styles are written as direct
+  formatting on its body's paragraphs, marks and runs, with `w:pStyle` and `w:rStyle` gone. The styles are copied all the
+  same. The footnote's own content keeps its styles.
+- **46c** (the template as authored):
+  - Word filled the rich text control mapped by `w15:dataBinding` to the Flat OPC node, reconciled as 46a's chunk was, and
+    kept the mapping on its mode-15 save.
+  - The plain text control mapped to the same node kept its placeholder.
+  - The `od:progid` control kept its placeholder. Word knows nothing of `od:progid`.
+
+### 11.2 Decisions
+
+The proposal's (a) to (f), as accepted, and how each is built here:
+
+| | Decided | Here |
+|---|---|---|
+| (a) | Route (i), the content resolved, is the default; docx4j's altChunk (ii) is an option | `applyBindings({ fragments: { route: 'resolve' \| 'altChunk' } })` |
+| (b) | Styles and numbering reconciled by Word's own rule (46a), and `keepSourceFormatting` as Word's `w:matchSrc` (46b) | `importFlatOpc` (`src/model/content/fragments.mts`); `fragments.keepSourceFormatting`, which on the altChunk route writes `w:altChunkPr/w:matchSrc` |
+| (c) | The reverse direction (a control's content written to its node as Flat OPC) is left out | `updateFromContentControls` leaves such a node alone, as before (`holdsFlatOpc`) |
+| (d) | Word's own `w15`-mapped rich text over Flat OPC is resolved too | `fragments.w15FlatOpc`: `'resolve'` (the default) or `'leave'` |
+| (e) | The editor's Data tab makes Word's form | The editor's |
+| (f) | Such a control's mapping is kept, or dropped on request | `fragments.w15Mapping`: `'keep'` (the default) or `'drop'`, which removes the `w15:dataBinding` alone |
+
+The engine's own:
+- **D1. Which controls:**
+  - A control is tag-bound when its tag has `od:progid=Word.Document` and an `od:xpath` entry, and it carries no
+    `w:dataBinding`, as XHTML's are (section 8.2).
+  - A control is `w15`-mapped when it is rich text, carries a `w15:dataBinding`, and its node holds a `pkg:package`.
+  - The pass runs last, after the text, picture and XHTML passes, over the same controls and every branch, as theirs do.
+- **D2. Placement** follows docx4j's `applyImportedContent`:
+  - a block-level control's content is replaced;
+  - a cell-level control's cell takes the content and keeps its own properties;
+  - a block control in a cell, and a cell-level control's cell, end with a paragraph (CR-002 section 55);
+  - a run-level or row-level control is left, with a note (REQ-060, REC-006).
+  - The control's showing-placeholder flag is cleared, and the new paragraphs get `w14:paraId`s where the story uses them
+    (CR-002 section 66).
+- **D3. Styles are matched by `w:styleId`.**
+  - A copied style loses `w:default`, so the document keeps its own default.
+  - A style's chain is followed only where the style is copied. A style the document has keeps the document's chain.
+  - Word may match by name. A fragment whose id and name disagree with the document's isn't measured.
+- **D4. Lists:**
+  - each `w:numId` the content, its notes or a copied style names becomes one new `w:num` and `w:abstractNum`;
+  - the new `w:abstractNum` gets a fresh `w:nsid`, so Word can't take it for the document's;
+  - the `w:num` keeps its `w:lvlOverride`s;
+  - a numbering part is made empty where the document has none.
+- **D5. Notes:**
+  - a footnote or endnote the content references is copied under the next free id, its reference rewritten, and what its
+    relationships reach copied beside the notes part;
+  - a notes part is made where there is none, holding Word's two separators (Word's own save also writes `w:footnotePr` in
+    the settings, which isn't done here; part 6(b) will say whether Word minds);
+  - in a header or a footer, where a note has no place, the reference is dropped with a note.
+- **D6. Dropped, each counted in `BindingResult.notes`:**
+  - comments' ranges and references (unmeasured: the check's fragment held none);
+  - a section break inside the fragment.
+  - The fragment's final section is dropped as Word drops it, with no note, since every Word document has one.
+- **D7. Ids made fresh only where the document already uses them:**
+  - a bookmark's (its start and its end alike);
+  - a control's `w:id`;
+  - a drawing's `wp:docPr` id.
+  - Each is checked against the main part, every header and footer already read, and the notes parts.
+  - A paragraph's `w14:paraId` isn't checked; a clash is one in two billion.
+- **D8. What the pass can't do is noted and left**, never thrown:
+  - no entry, no part, nothing selected;
+  - a node holding no `pkg:package`;
+  - a package that can't be read, or that holds an element Word doesn't know (`contentOf`'s CR-026 D12 refusal).
+- **D9. Counting:**
+  - A tag-bound control counts in `bound`, then in `updated` or `skipped`.
+  - A `w15`-mapped control was already counted by the text pass as bound and skipped (`holdsFlatOpc`). Once resolved it moves
+    from `skipped` to `updated`.
+
+### 11.3 As built
+
+- **`src/model/content/fragments.mts`: `importFlatOpc(flatOpc, target, { target: part, keepSourceFormatting })`.**
+  - It returns `{ content, dropped }`. The parts, styles, lists and notes the content needs are already in the document.
+  - It reads the package through `contentOf`'s `loadFlatOpc`, now shared in `ooxml.mts`, and copies what the content's
+    relationships reach through `copyReferencedParts`, now exported.
+  - `keepSourceFormatting` uses the source package's resolver: `getChainPPr` and `getChainRPr`, a style's chain without the
+    document defaults.
+    - The paragraph's own `w:pPr` is applied over the chain, and the style's run properties are applied under the mark's and
+      every run's.
+    - A run's character style is a level between, its toggles combined by `applyStyleLevel`.
+    - Then `w:pStyle` and `w:rStyle` go.
+    - A paragraph naming no style takes the fragment's default paragraph style's chain.
+- **`src/model/customxml/fragments.mts`:**
+  - `applyFlatOpcBindingTo(control, parts, host, options)` handles one control. It is exported beside `applyXhtmlBindingTo`
+    for the editor's refresh.
+  - `applyFlatOpcBindingsTo` is the pass.
+  - `isFragmentBound` and `isW15FlatOpcMapped` say which controls it takes.
+  - The altChunk route writes docx4j's form:
+    - the node's text, with an XML declaration prefixed where it has none, as an `AlternativeFormatInputPart` named
+      `chunkN.xml` beside the control's part, typed `application/xml`;
+    - an `aFChunk` relationship;
+    - `w:altChunk` as the control's content.
+- **What a run added is reported** (the editor's request, 2026-11-11): `importFlatOpc`'s `created`, and the outcome's, list
+  - the `w:num` and `w:abstractNum` ids added;
+  - the style ids copied;
+  - the part names added: pictures and other targets, and a notes, numbering or styles part made. On the altChunk route it is
+    the chunk's part alone.
+
+  A caller that binds the same control again, such as the editor's refresh, can then remove what the run before made once
+  nothing uses it. The removal is the caller's, and the pass keeps no record between runs.
+- **`CustomXmlPartCollection.applyBindings({ html, fragments })`** runs the pass when the collection has a `fragmentHost`
+  (the package). Without one, such controls are left with a note.
+- **Behaviour change for existing callers:** `applyBindings` now fills Word's own `w15`-mapped rich text over Flat OPC by
+  default. docx4j's `invoice2013.docx` has one, its terms. Its content is replaced by the package's body, as Word replaces it
+  on open, where the text pass alone left it as stored. `customxml.test.mjs` now holds it so. `w15FlatOpc: 'leave'` keeps the
+  old behaviour.
+
+### 11.4 Tests
+
+`test/fragments.test.mjs`, 19 tests:
+- **The manifest**, and which controls each form takes.
+- **In both compatibility modes:**
+  - the `od:progid` control resolved, held to Word's resolution of docx4j's chunk (46a), paragraph for paragraph. Each
+    paragraph is compared on its text, its properties, the list it reads in (by format), each run's properties, its notes'
+    text and its pictures. The tables' borders and cells, the inner controls' tags and ids, and the pictures' bytes are
+    compared too.
+  - the `w15` control, held to what Word filled it with on open (46c);
+  - `keepSourceFormatting`, held to Word's `w:matchSrc` (46b).
+- **Word's reconciliation:**
+  - the document's Heading 1 kept;
+  - FragmentNote and FootnoteReference copied as Word copied them;
+  - FootnoteText as Word copied it, less the link to Word's FootnoteTextChar, which isn't made here;
+  - the list labels, as the text model reads them, Word's: 1, 2, I, II, 3;
+  - one section, the document's.
+- **A save read back:** no warning, no misplaced content.
+- **The altChunk route against docx4j's 46a and 46b forms:** the content, the relationship, the part's bytes and type.
+- **`w15Mapping`:** the mapping kept as Word keeps it, then dropped alone. **`w15FlatOpc: 'leave'`**.
+- **Placement:** a block control in a cell, a cell-level control, a run-level control.
+- **What's dropped and the ids:** a section break and comments inside the fragment, a bookmark and a control's `w:id`
+  colliding with the document's.
+- **A header:** its parts beside the header, the note's reference dropped.
+- **What's left with a note:** no entry, a text node, nothing selected, a package that can't be read; and
+  `applyFlatOpcBindingTo` on one control.
+- **A document without the parts**, which are made; a copied style without `w:default`.
+- **`created`**, on a first run, on the same control bound again (a new list and picture part, no styles, the notes part already
+  there), and on the altChunk route.
+
+Seven mutants of the import, each caught: notes not copied, lists not copied, styles not copied, ids not made fresh,
+`w:pStyle` kept, an inner section kept, `w:default` kept.
+
+### 11.5 Known differences, and what is open
+
+- **Word's own additions, not made here:**
+  - the linked character style for a copied paragraph style (FootnoteTextChar);
+  - `w:tblInd`, `w:tblCellMar`, `w:tblLook` and per-row `w:tblPrEx` on the fragment's table;
+  - `w:noProof` on the picture's run;
+  - an `w:rPr` in the control's `w:sdtPr`;
+  - `w:footnotePr` and `w:endnotePr` in the settings, and an endnotes part.
+
+  The tests compare around them.
+- **A bind run again adds the fragment's lists again.** Each run makes new `w:num`s and `w:abstractNum`s, and those of the
+  run before stay in the numbering part, unused, as its picture parts do. Word's own refill on open does the same, as far
+  as anyone has looked. `created` says what each run made, so a caller that binds again (the editor's refresh) removes what
+  nothing uses any more.
+- **The text model reads a plain text control mapped to a Flat OPC node as the node's text** (REQ-509, docx4j's
+  `BoundValues`), the escaped package, where Word 365 shows the control's placeholder (46c control (2), both runs). The
+  bind's text pass leaves such a control (`holdsFlatOpc`), so only the reading differs. It is a reading shared with docx4j's
+  text model, so it goes to the WD and Jason, not changed here. `fragments.test.mjs` pins it.
+- **`insertOoxml` doesn't reconcile yet.** Part 2 has `insertOoxml` gain the same reconciliation, which reopens CR-002 open
+  question 5. `importFlatOpc` is what it would call. **For Jason:**
+  - whether `insertOoxml` reconciles by default, as Word's own `insertOoxml` may (unmeasured), or only on request;
+  - if on request, where the switch lives: a package setting, since Office JS's `insertOoxml` takes no options.
+- **Part 6(b), the engine's two outputs through the Word bridge, is the portfolio's** once part 1 is in a release. The
+  route-(i) save of 46c (both controls) and the altChunk route's are this package's to give it.

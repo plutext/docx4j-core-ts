@@ -519,6 +519,15 @@ await pkg.customXmlParts.updateFromContentControls(); // docx4j: controls -> XML
 That last pair matters: Word refreshes a bound control from the custom XML part when it opens a
 document, so an edit that only touched `w:sdtContent` would not show.
 
+A node holding a whole Word document as Flat OPC (`pkg:package`) fills a control tagged
+`od:progid=Word.Document` through its `od:xpath` entry, and Word's own rich text control mapped by
+`w15:dataBinding`, as Word 365 fills them: the document's content with its pictures and notes, its
+styles copied where the document lacks them and each list a new one (CR-005 section 11). The options
+are `applyBindings({ fragments: { route, keepSourceFormatting, w15FlatOpc, w15Mapping } })`: route
+`'altChunk'` writes docx4j's `w:altChunk` for Word to resolve instead, `keepSourceFormatting` is Word's
+"keep source formatting", `w15FlatOpc: 'leave'` leaves Word's own control as stored, and
+`w15Mapping: 'drop'` removes its `w15:dataBinding` once filled.
+
 A new part comes with its properties part, a fresh `ds:itemID` and the relationship from the main
 document part (Word drops a custom XML part the main part does not relate to):
 

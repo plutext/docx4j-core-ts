@@ -432,8 +432,15 @@ test('typed content controls on a document Word wrote (docx4j\'s invoice2013)', 
   const applied = await pkg.customXmlParts.applyBindings();
   assert.ok(applied.updated > 0);
   // the picture control and the repeating sections are left alone: a picture binding is deferred
-  // and a container would be flattened by a value (CR-002 section 12)
-  assert.ok(applied.skipped >= 3);
+  // and a container would be flattened by a value (CR-002 section 12). The terms control, Word's rich text mapped by
+  // w15:dataBinding to a node holding Flat OPC, is filled from it as Word fills it on open (CR-005 section 11, w15FlatOpc's
+  // default), where the text pass alone left it: its text is now the package's body text
+  assert.equal(applied.skipped, 2);
+  const terms = controls.find((c) => c.title === '/invoice[1]/terms[1]');
+  const flatOpc = terms.xmlMapping.customXmlNode.text;
+  const fragment = await WordprocessingMLPackage.load(flatOpc);
+  assert.equal(terms.text, (await fragment.getBody()).text);
+  assert.ok(terms.text.length > 0);
   assert.equal(controls.find((c) => c.title === '/invoice[1]/customer[1]/company[1]').text, 'Acme Pty Ltd');
   // the checkbox shows Word's glyph, the date is formatted with its w:dateFormat
   assert.equal(checkbox.checkboxContentControl.isChecked, true);

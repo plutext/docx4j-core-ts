@@ -18,6 +18,7 @@ export { layoutModeOf, textWidthTwips, gridWidthsOf, widthTypeOf, insertGridColu
 export { InlinePicture, imageInfoOf, naturalSizeEmu, addImage, addImagePart, writableWidthEmu, type ImageFormat, type ImageInfo, type InlinePictureOptions, type NewPicture, type NewImagePart } from './InlinePicture.mjs';
 export { ContentControl, collectControls, collectRunControls, W14_NS, W15_NS, type ContentControlType, type ContentControlForm, type ContentControlAppearance } from './ContentControl.mjs';
 export { contentOf, isFlatOpc, rewriteRelationshipIds, type OoxmlOptions } from './ooxml.mjs';
+export { importFlatOpc, type FragmentTarget, type FragmentOptions, type ImportedFragment, type FragmentCreated } from './fragments.mjs';
 export {
   DEFAULT_ENTRIES, DEFAULT_PLACEHOLDER_ENTRY, DEFAULT_PLACEHOLDER_TEXT, defaultEntryFor, placeholderEntryOf, namePlaceholderEntry, type DefaultEntry,
 } from './placeholders.mjs';

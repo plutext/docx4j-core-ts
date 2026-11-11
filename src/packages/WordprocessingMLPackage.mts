@@ -1,3 +1,4 @@
+import type { FragmentHost } from '../model/customxml/fragments.mjs';
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import { createCTCompat, createCTCompatSetting } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { OpcPackage, type PackageSource } from './OpcPackage.mjs';
@@ -829,6 +830,7 @@ export class WordprocessingMLPackage extends OpcPackage implements TrackingHost 
       },
       customXmlRelationshipSource: () => this.getMainDocumentPart(),
       xhtmlHost: this,
+      fragmentHost: this as unknown as FragmentHost,
       getPropertyResolver: () => this.getPropertyResolver(),
     }));
   }

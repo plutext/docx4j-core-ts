@@ -60,25 +60,33 @@ export async function contentOf(ooxml: string, options: OoxmlOptions = {}): Prom
   }
   const target = options.target;
   if (!target) throw new Docx4JException('A pkg:package can only be inserted into a body that has a part');
+  const { source, content } = await loadFlatOpc(ooxml, options.preprocess);
+  if (content.length === 0) return [];
+  const rewrites = await copyReferencedParts(content, source.getMainDocumentPart(), target);
+  if (rewrites.size > 0) rewriteRelationshipIds(content, rewrites);
+  return content;
+}
+
+/**
+ * A flat OPC package read as a package, and its main part's body content (the final `w:sectPr` not among it). Refused
+ * where the main part holds an element Word doesn't know (CR-026 D12). Shared with the fragment import (CR-005 section 11).
+ */
+export async function loadFlatOpc(ooxml: string, preprocess?: (doc: Document) => void): Promise<{ source: import('../../packages/WordprocessingMLPackage.mjs').WordprocessingMLPackage; content: Element[] }> {
   // Imported here so that the content API does not import the packages statically: parts/wml
   // builds Body views, and a static import back would be a cycle (CLAUDE.md).
   const { WordprocessingMLPackage } = await import('../../packages/WordprocessingMLPackage.mjs');
-  const source = await WordprocessingMLPackage.load(ooxml, options.preprocess ? { preprocessor: options.preprocess } : {});
+  const source = await WordprocessingMLPackage.load(ooxml, preprocess ? { preprocessor: preprocess } : {});
   const main = source.getMainDocumentPart();
   const document = await main.getContents();
   refuseUnknown(main.warnings.flatMap((w) => (w.code === 'part.skipped' && w.kind === 'element' ? [w.name] : [])));
-  const content = (document.body?.content ?? []) as Element[];
-  if (content.length === 0) return [];
-  const rewrites = await copyReferencedParts(content, main, target);
-  if (rewrites.size > 0) rewriteRelationshipIds(content, rewrites);
-  return content;
+  return { source, content: (document.body?.content ?? []) as Element[] };
 }
 
 /**
  * Copies every part the content references into the target's package and returns the mapping
  * from the incoming relationship ids to the new ones.
  */
-async function copyReferencedParts(content: Element[], sourcePart: Part, target: Part): Promise<Map<string, string>> {
+export async function copyReferencedParts(content: Element[], sourcePart: Part, target: Part): Promise<Map<string, string>> {
   const sourceRels = sourcePart.relationshipsPart;
   const map = new Map<string, string>();
   if (!sourceRels) return map;
