@@ -1,0 +1,43 @@
+{
+ "probe": "the broken-part family's relationships cases: a relationships part not well formed, a part's (case 119) and the package's (case 120), with the intact twin (case 100) (CR-032)",
+ "source": "docx4j-core-tests/src/test/resources/text-extraction/broken-part/ at the docx4j 17.3.6 release (tag docx4j-17.3.6, 4afcf4be8), these files by name, copied unedited; the two tables whole, read here for cases 119 and 120",
+ "word": "Word 365 (docx4j CR-075 section 2, the broken-part README's Word table): each opened with \"unreadable content\", repaired; <name>-word365.docx is Word's save, <name>-word365-utf8.txt its Save As text",
+ "files": [
+  {
+   "name": "broken-part-document-rels-word365-utf8.txt",
+   "sha1": "09773be407ed0f9f5b466a19445c720696d4ce63"
+  },
+  {
+   "name": "broken-part-document-rels-word365.docx",
+   "sha1": "8351b9a6c5fcafdd512ee630494020efde66336b"
+  },
+  {
+   "name": "broken-part-document-rels.docx",
+   "sha1": "3ce1bde2f31f674b648a9cc0dcb65f47498263c0"
+  },
+  {
+   "name": "broken-part-intact.docx",
+   "sha1": "e0e5f29fedade29a87307c88c803309bfd357645"
+  },
+  {
+   "name": "broken-part-package-rels-word365-utf8.txt",
+   "sha1": "c98776fed52e82c1a376fad7128ca3724556f2bd"
+  },
+  {
+   "name": "broken-part-package-rels-word365.docx",
+   "sha1": "d14136f7a3a4977023dce4dadb9e5fb0f803359a"
+  },
+  {
+   "name": "broken-part-package-rels.docx",
+   "sha1": "4a72f2d29fb92b927fb8b15b88d4d89635366da4"
+  },
+  {
+   "name": "expected-findings.tsv",
+   "sha1": "cdfb0aa06087dfa614a8fa05d2d2d08cfd9bf91f"
+  },
+  {
+   "name": "expected-tokens.tsv",
+   "sha1": "ab3a769aa94b3c3b79c0e66d50e5e14e3dc49673"
+  }
+ ]
+}

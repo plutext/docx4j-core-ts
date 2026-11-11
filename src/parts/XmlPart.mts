@@ -424,15 +424,27 @@ export class XmlPart<T = unknown> extends Part {
    * `parseXml` passes on.
    */
   private parse(bytes: Uint8Array): Document {
+    const text = decodeXmlText(bytes);
     try {
-      return parseXml(decodeXmlText(bytes));
+      return parseXml(text);
     } catch (cause) {
       const at = (cause as { locator?: { lineNumber?: unknown; columnNumber?: unknown } } | undefined)?.locator;
       const line = typeof at?.lineNumber === 'number' ? at.lineNumber : undefined;
       const column = typeof at?.columnNumber === 'number' ? at.columnNumber : undefined;
       const reason = (cause instanceof Error ? cause.message : String(cause)).replace(/^Malformed XML: /, '');
-      throw new PartUnmarshalException(`${this.partName}: Malformed XML${positionOf(line, column)}: ${reason}`, this.partName.name, { cause, line, column });
+      const failure = new PartUnmarshalException(`${this.partName}: Malformed XML${positionOf(line, column)}: ${reason}`, this.partName.name, { cause, line, column });
+      const read = this.readMalformed(text, failure);
+      if (read === undefined) throw failure;
+      return read;
     }
+  }
+
+  /**
+   * A part whose XML isn't well formed, read as far as a reader of its kind can (CR-032): undefined by default, so the parse error
+   * is thrown. A relationships part reads the relationships before the break, as Word's repair does.
+   */
+  protected readMalformed(_text: string, _failure: PartUnmarshalException): Document | undefined {
+    return undefined;
   }
 
   /**

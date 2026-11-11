@@ -4,7 +4,9 @@ import { Part, setRelationshipsPartFactory, type RelationshipSource } from './Pa
 import { PartName } from '../opc/PartName.mjs';
 import { ContentTypes } from '../opc/ContentTypes.mjs';
 import { Namespaces } from './Namespaces.mjs';
-import { InvalidFormatException, RelationshipsNamespaceException } from '../opc/exceptions.mjs';
+import { InvalidFormatException, RelationshipsNamespaceException, type PartUnmarshalException, type RelationshipsNotReadWarning } from '../opc/exceptions.mjs';
+import { relationshipsBeforeTheBreak } from '../opc/repair/relationshipsBeforeTheBreak.mjs';
+import { parseXml } from '../xml/dom.mjs';
 import type { PartWarning } from '../opc/mce/preprocessor.mjs';
 
 /** What `addPart` does when a part of the same name is already in the package (docx4j AddPartBehaviour). */
@@ -50,6 +52,52 @@ export class RelationshipsPart extends XmlPart<Relationships> {
   readsByLocalName = false;
 
   /**
+   * The parse error, where this part isn't well formed and was read short (CR-032); undefined otherwise. The load refuses
+   * `/_rels/.rels` with it where the main part's relationship wasn't among those kept.
+   */
+  readFailure: PartUnmarshalException | undefined;
+  private readShort: RelationshipsNotReadWarning | undefined;
+
+  /**
+   * A relationships part that isn't well formed, at every value of `repair` (CR-032; WD 0.76, docx4j CR-075 D5 and D6): the
+   * relationships before the break, each whole `Relationship` by its local name with its `Id`, `Type` and `Target`, read as a
+   * part in the right namespace, as Word's repair reads it. `readRoot` then says so, `part.not_read` with the count kept.
+   */
+  protected override readMalformed(text: string, failure: PartUnmarshalException): Document {
+    const { kept, xml } = relationshipsBeforeTheBreak(text, parseXml, failure);
+    const partName = this.partName.name;
+    const reason = failure.message.startsWith(`${partName}: `) ? failure.message.slice(partName.length + 2) : failure.message;
+    this.readFailure = failure;
+    this.readShort = {
+      code: 'part.not_read',
+      partName,
+      count: kept.length,
+      reason,
+      line: failure.line,
+      column: failure.column,
+      message: `${partName} isn't well formed (${reason}); the ${kept.length} relationship${kept.length === 1 ? '' : 's'} before the break read, `
+        + "as Word's repair reads them, and a part only a lost one named is absent (CR-032). A save would drop what the others named: "
+        + "it is refused unless the load's repair is 'word' or 'all', or checkLossOnSave is false",
+    };
+    return parseXml(xml);
+  }
+
+  /** Where this part wasn't well formed and was read short, the warning saying so (CR-032); a part given contents since has none. */
+  get notRead(): RelationshipsNotReadWarning | undefined {
+    for (const w of this.warnings) if (w.code === 'part.not_read') return w;
+    return undefined;
+  }
+
+  /** The read short, said first (CR-032), then the namespace (CR-025 section 8, CR-031 section 2.3). */
+  protected override readRoot(doc: Document): readonly PartWarning[] {
+    const short = this.readShort;
+    this.readShort = undefined;
+    if (!short) this.readFailure = undefined;
+    const namespace = this.readNamespace(doc);
+    return short ? [short, ...namespace] : namespace;
+  }
+
+  /**
    * Refuses a part in another namespace, or in none, on its root or on any `Relationship` (CR-025 section 8, D10), before the
    * runtime drops what it can't bind. Under `readsByLocalName` (`repair: 'word'`, CR-031 section 2.3) the root and every
    * `Relationship` are read by their local names instead, as Word's repair reads them, so the runtime binds them all and a
@@ -57,7 +105,7 @@ export class RelationshipsPart extends XmlPart<Relationships> {
    * local name is left to the runtime, as before: Word is unmeasured on both, and a child is then a `part.skipped` on this
    * part, which `pkg.warnings` gathers (D12).
    */
-  protected override readRoot(doc: Document): readonly PartWarning[] {
+  private readNamespace(doc: Document): readonly PartWarning[] {
     const root = doc.documentElement;
     if (!root || root.localName !== 'Relationships') return [];
     const isRelationship = (c: Node): c is Element => c.nodeType === 1 && (c as Element).localName === 'Relationship';

@@ -43,6 +43,8 @@ export interface TextPackage {
   readonly externalMainPart?: { readonly partName: string; readonly urls: readonly string[] } | undefined;
   /** The relationships parts read by local name under `repair: 'word'` (CR-031 section 2.3). */
   readonly relationshipsNamespaces?: readonly { readonly partName: string; readonly count: number }[];
+  /** The relationships parts that weren't well formed, read short, the relationships before the break kept (CR-032). */
+  readonly relationshipsNotRead?: readonly { readonly partName: string; readonly count: number }[];
   /** What the load repaired (REQ-207's `repaired`, CR-031). */
   readonly repaired?: 'none' | 'word' | 'own';
 }

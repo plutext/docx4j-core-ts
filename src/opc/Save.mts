@@ -7,6 +7,7 @@ import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import type { Part } from '../parts/Part.mjs';
 import { XmlPart, valueOutOfRange, misplacedContent } from '../parts/XmlPart.mjs';
 import type { ValueOutOfRangeWarning, MisplacedContentWarning } from './mce/preprocessor.mjs';
+import type { RelationshipsNotReadWarning } from './exceptions.mjs';
 import type { ContentSkippedWarning } from './skipped.mjs';
 import type { Normalisation } from '@docx4j/generated-objects-ts';
 import type { OpcPackage } from '../packages/OpcPackage.mjs';
@@ -42,6 +43,11 @@ export interface SaveReport {
   dropped: ContentSkippedWarning[];
   /** Items a changed part was written without under `checkLossOnSave` off (`onSave: 'lost'`). */
   lost: ContentSkippedWarning[];
+  /**
+   * Each relationships part read short that the save wrote as read, the relationships before the break (CR-032): Word's repaired
+   * form under the load's `repair: 'word'` or `'all'`, else with `checkLossOnSave` off.
+   */
+  relationshipsNotRead: RelationshipsNotReadWarning[];
 }
 
 function valueNormalised(partName: string, n: Normalisation): ValueNormalised {
@@ -87,7 +93,10 @@ export async function savePackage<R>(pkg: OpcPackage, sink: PartSink<R>): Promis
   sink.put(CONTENT_TYPES_NAME, encodeText(pkg.contentTypeManager.toXml()), { contentType: ContentTypes.CONTENT_TYPES_PART });
   await saver.saveRels(pkg.relationshipsPart);
   const result = await sink.finish();
-  pkg.lastSave = { normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced, dropped: saver.dropped, lost: saver.lost };
+  pkg.lastSave = {
+    normalised: saver.normalised, outOfRange: saver.outOfRange, misplaced: saver.misplaced, dropped: saver.dropped, lost: saver.lost,
+    relationshipsNotRead: saver.relationshipsNotRead,
+  };
   return result;
 }
 
@@ -98,6 +107,7 @@ class Saver {
   readonly misplaced: MisplacedContentWarning[] = [];
   readonly dropped: ContentSkippedWarning[] = [];
   readonly lost: ContentSkippedWarning[] = [];
+  readonly relationshipsNotRead: RelationshipsNotReadWarning[] = [];
   /** Parts holding skipped content, read and not changed: written from their source (CR-025 section 2.2). */
   private readonly copied = new Set<string>();
 
@@ -134,6 +144,14 @@ class Saver {
       }
     };
     await visit(this.pkg.relationshipsPart);
+    // a relationships part read short (CR-032, docx4j CR-075 D8): a save would drop what a lost relationship named. Under the load's
+    // repair 'word' or 'all' it writes the repaired form, as Word's save of its repair does; otherwise it is refused, unless
+    // checkLossOnSave is off. A part given contents since has no warning, which is how a caller who has put the relationships back says so
+    const followsWord = (this.pkg.loadOptions.repair ?? 'refuse') !== 'refuse';
+    for (const w of this.pkg.relationshipsNotRead) {
+      if (!followsWord && this.pkg.checkLossOnSave) losses.push({ partName: w.partName, kind: 'relationships', count: w.count });
+      else this.relationshipsNotRead.push(w);
+    }
     if (losses.length > 0) throw new SaveLossException(losses);
   }
 

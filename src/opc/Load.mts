@@ -2,7 +2,7 @@ import type { Relationship } from '@docx4j/generated-objects-ts/modules/org_docx
 import type { PartStore } from './PartStore.mjs';
 import { PartName, CONTENT_TYPES_NAME } from './PartName.mjs';
 import { ContentTypeManager } from './ContentTypeManager.mjs';
-import { Docx4JException, DuplicateEntryException, ExternalMainPartException, InvalidFormatException, MultipleMainPartsException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning } from './exceptions.mjs';
+import { Docx4JException, DuplicateEntryException, ExternalMainPartException, InvalidFormatException, MultipleMainPartsException, PartUnmarshalException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning } from './exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { RelationshipsPart, isExternal } from '../parts/RelationshipsPart.mjs';
 import { XmlPart, type DomPreprocessor } from '../parts/XmlPart.mjs';
@@ -59,6 +59,12 @@ export interface LoadOptions {
    * At every value an `External` officeDocument relationship with no internal one is refused, as a package with no main
    * document part (REQ-321), and the save's own gate is left alone: `pkg.checkLossOnSave` decides whether a save may lose
    * what a read skipped (CR-031 D6).
+   *
+   * At every value, too, a relationships part that isn't well formed is read as Word's repair reads it (CR-032; WD 0.76, docx4j
+   * CR-075 D5): the relationships before the break, a part only a lost one named absent, a `RelationshipsNotReadWarning`
+   * (`part.not_read`) on the part. `_rels/.rels` that lost the main part's relationship so is refused. Here `repair` decides
+   * the save: under `'word'` and `'all'` it writes that repaired form, as Word's save does; under `'refuse'` it throws
+   * `SaveLossException` unless `pkg.checkLossOnSave` is false.
    */
   repair?: RepairMode;
 }
@@ -107,6 +113,13 @@ export async function loadPackage<P extends OpcPackage>(
   // an External relationship names no part, so it gives way to one that does
   const mainRels = packageRels.list.filter((r) => MAIN_PART_RELATIONSHIPS.includes(r.type));
   const mainRel = mainRels.find((r) => !isExternal(r)) ?? mainRels[0];
+  // `_rels/.rels` read short (CR-032, docx4j CR-075 D6): without the main part's relationship among those kept there is nothing to
+  // read, so the load is refused, naming the part and the parse error
+  const failure = packageRels.readFailure;
+  if (!mainRel && failure) {
+    throw new PartUnmarshalException(`${failure.message}; the main part's relationship isn't among the ${packageRels.size} before the break, `
+      + 'so this package has no main document part to read (CR-032)', failure.partName, { cause: failure, line: failure.line, column: failure.column });
+  }
   if (!mainRel) throw new InvalidFormatException('No relationship of type officeDocument');
   const mainPartName = PartName.resolve(PartName.ROOT, mainRel.target);
   const pkg = createPackage(ctm.getContentType(mainPartName));
@@ -124,6 +137,9 @@ export async function loadPackage<P extends OpcPackage>(
   await loader.registerCustomXmlDataStorageParts();
   // after the walk, so a target the kept part reaches by a relationship of its own, or a second relationship names, keeps its type
   for (const name of mainParts?.dropped ?? []) if (!pkg.getPart(name)) ctm.removeOverrideContentType(name);
+  // a relationships part read short (CR-032): a part only a lost relationship named isn't read, so its Override goes too, and a
+  // save writes the package Word's save of its repair writes
+  if (pkg.relationshipsNotRead.length > 0) for (const name of ctm.overridePartNames()) if (!pkg.getPart(name)) ctm.removeOverrideContentType(name);
   return pkg;
 }
 

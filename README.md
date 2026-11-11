@@ -74,6 +74,8 @@ pkg.repaired;                                       // 'none', 'word' or 'own'; 
 | A relationships part in another namespace, or in none | `RelationshipsNamespaceException` | Every relationship read by its local name, as Word does: `package.relationships_namespace` | As `word` |
 | An `External` `officeDocument` relationship beside an internal one | `ExternalMainPartException` | Refused: Word refuses it even through its repair | This package's own repair: the internal part read, every `External` main relationship dropped, its URL never fetched: `package.external_main_part` |
 | An `External` `officeDocument` relationship alone | Refused: no main document part (REQ-321) | Refused | Refused |
+| A relationships part that isn't well formed ([CR-032](docs/change-requests/CR-032-a-relationships-part-not-well-formed.md)) | Read at every value as Word's repair reads it: the relationships before the break, a part only a lost one named absent: `part.not_read`, the count kept. A save is refused (below) | Read the same; a save writes that repaired form | As `word` |
+| `_rels/.rels` that isn't well formed, the main part's relationship lost with the break | `PartUnmarshalException`, naming the part and the parse error | Refused | Refused |
 
 Each warning is on `pkg.warnings` and, in the text model, a warning of the same code. A save then writes the
 repaired package: one entry of each name, one main relationship, the right namespace, no `External` main
@@ -95,6 +97,7 @@ content Word keeps. Each check has a switch on the package, and each records wha
 | Write a child its container never admits: a run straight in the body, a table in a paragraph, a string in a run ([CR-016](docs/change-requests/CR-016-misplaced-content-refused.md)) | `MisplacedContentException` (`target.misplaced`, each child with its part, path and the fix) | `pkg.checkContentOnSave = false` | `misplaced` |
 | Lose what the read skipped, where Word's save keeps it or Word won't open the file ([CR-025](docs/change-requests/CR-025-dropped-content-reported.md)) | `SaveLossException` (`save.content_lost`, each part) | `pkg.checkLossOnSave = false` | `lost` |
 | Lose what the read skipped, where Word's own save drops it too | Nothing: written without it | | `dropped` |
+| Drop what a relationships part read short lost, at `repair: 'refuse'` ([CR-032](docs/change-requests/CR-032-a-relationships-part-not-well-formed.md)) | `SaveLossException` (`save.content_lost`, the part and the relationships kept) | `pkg.checkLossOnSave = false`, or load with `repair: 'word'` | `relationshipsNotRead` |
 
 ```ts
 import { SaveLossException } from '@docx4j/core-ts';

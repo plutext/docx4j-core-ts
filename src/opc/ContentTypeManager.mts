@@ -106,6 +106,11 @@ export class ContentTypeManager {
     return false;
   }
 
+  /** Every part name an Override names, as written. */
+  overridePartNames(): string[] {
+    return [...this.overrides.values()].map(([name]) => name);
+  }
+
   /** Part names overridden to a content type (docx4j getPartNameOverridenByContentType, all of them). */
   getPartNamesForContentType(contentType: string): PartName[] {
     const out: PartName[] = [];

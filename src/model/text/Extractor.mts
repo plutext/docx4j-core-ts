@@ -399,6 +399,11 @@ export class Extractor {
     for (const r of this.trees.pkg?.relationshipsNamespaces ?? []) {
       this.warn(new TextWarning(TextWarning.PACKAGE_RELATIONSHIPS_NAMESPACE, undefined, undefined, undefined, r.partName, r.count));
     }
+    // a relationships part that isn't well formed, the relationships before the break read (CR-032; WD 0.76): part.not_read, the
+    // relationships part its selector and the count kept its detail, as docx4j raises it; a part only a lost one named is absent
+    for (const r of this.trees.pkg?.relationshipsNotRead ?? []) {
+      this.warn(new TextWarning(TextWarning.PART_NOT_READ, undefined, undefined, undefined, r.partName, r.count));
+    }
     const metadata = this.metadata();
     const main = this.trees.main;
     const body = main?.document.body as { content?: Element[]; sectPr?: wml.SectPr } | undefined;

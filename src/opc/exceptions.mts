@@ -154,6 +154,26 @@ export interface RelationshipsNamespaceWarning {
 }
 
 /**
+ * A relationships part that isn't well formed (CR-032; WD 0.76's ruling on WD 0.73's item (i), docx4j CR-075 D5 and D6), at every
+ * value of `repair`: the relationships before the break are read, as Word's repair reads them, and a part only a lost one named is
+ * absent. A save is refused (`SaveLossException`) unless the load's `repair` is `'word'` or `'all'`, when it writes that repaired
+ * form as Word's save does, or `pkg.checkLossOnSave` is false. On the relationships part's `warnings`, so on `pkg.warnings` and
+ * `pkg.relationshipsNotRead`, and in the text model as `part.not_read`, the part's name its selector and the count its detail
+ * (REQ-801), as docx4j raises it. `partName` is the relationships part, `count` the relationships kept, `reason` the parse error,
+ * with its `line` and `column` where the parser gave them (Node's parser does, a browser's doesn't). `/_rels/.rels` read short
+ * without the main part's relationship is refused at the load, naming the part and the parse error.
+ */
+export interface RelationshipsNotReadWarning {
+  code: 'part.not_read';
+  partName: string;
+  count: number;
+  reason: string;
+  line: number | undefined;
+  column: number | undefined;
+  message: string;
+}
+
+/**
  * docx4j CyclicStylesException: a style's `w:basedOn` chain comes back to a style it already
  * holds, or goes deeper than docx4j's limit of 32. Thrown only when
  * `throwOnCyclicStyles(true)` is set (docx4j's
@@ -263,8 +283,15 @@ export class MisplacedContentException extends Docx4JException {
 /** One part a save would lose content from (CR-025 section 2.3). */
 export interface ContentLoss {
   partName: string;
-  kind: 'skipped';
-  /** The items its read dropped that Word's own save doesn't drop too: `part.skipped` with `onSave: 'lost'`, one each (CR-025 section 10). */
+  /**
+   * `skipped`: a changed part holding what its read dropped (CR-025). `relationships`: a relationships part that wasn't well formed
+   * and was read short (CR-032), so a save would drop whatever a lost relationship named.
+   */
+  kind: 'skipped' | 'relationships';
+  /**
+   * For `skipped`, the items its read dropped that Word's own save doesn't drop too: `part.skipped` with `onSave: 'lost'`, one
+   * each (CR-025 section 10). For `relationships`, the relationships kept, those before the break.
+   */
   count: number;
 }
 
@@ -276,8 +303,22 @@ export class SaveLossException extends Docx4JException {
   readonly code = 'save.content_lost';
 
   constructor(readonly losses: readonly ContentLoss[]) {
-    super(`Saving would lose content Word's own save keeps or isn't measured on: ${losses.map((l) => `${l.partName} holds ${l.count} item${l.count === 1 ? '' : 's'} the load skipped (part.skipped, onSave lost)`).join(', ')}. `
-      + `Set pkg.checkLossOnSave = false to write ${losses.length === 1 ? 'the part without it' : 'the parts without them'}.`);
+    super(SaveLossException.messageOf(losses));
     this.name = 'SaveLossException';
+  }
+
+  private static messageOf(losses: readonly ContentLoss[]): string {
+    const skipped = losses.filter((l) => l.kind === 'skipped');
+    const short = losses.filter((l) => l.kind === 'relationships');
+    const out: string[] = [];
+    if (skipped.length > 0) {
+      out.push(`Saving would lose content Word's own save keeps or isn't measured on: ${skipped.map((l) => `${l.partName} holds ${l.count} item${l.count === 1 ? '' : 's'} the load skipped (part.skipped, onSave lost)`).join(', ')}. `
+        + `Set pkg.checkLossOnSave = false to write ${skipped.length === 1 ? 'the part without it' : 'the parts without them'}.`);
+    }
+    if (short.length > 0) {
+      out.push(`Saving would drop what the relationships lost at the load named: ${short.map((l) => `${l.partName} isn't well formed, and only the ${l.count} relationship${l.count === 1 ? '' : 's'} before the break ${l.count === 1 ? 'was' : 'were'} read (part.not_read)`).join(', ')}. `
+        + "Load with { repair: 'word' } to write the repaired form, as Word's save does, or set pkg.checkLossOnSave = false.");
+    }
+    return out.join(' ');
   }
 }

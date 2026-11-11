@@ -6,7 +6,7 @@ import { ZipPartStore, ZipPartSink } from '../opc/ZipPartStore.mjs';
 import { FlatOpcPartStore, FlatOpcPartSink, type FlatOpcSinkOptions } from '../opc/FlatOpcPartStore.mjs';
 import { loadPackage, type LoadOptions } from '../opc/Load.mjs';
 import { savePackage, type SaveReport } from '../opc/Save.mjs';
-import { Docx4JException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning, type RelationshipsNamespaceWarning } from '../opc/exceptions.mjs';
+import { Docx4JException, type DuplicateEntryWarning, type ExternalMainPartWarning, type MultipleMainPartsWarning, type RelationshipsNamespaceWarning, type RelationshipsNotReadWarning } from '../opc/exceptions.mjs';
 import { Namespaces } from '../parts/Namespaces.mjs';
 import { Part, type RelationshipSource } from '../parts/Part.mjs';
 import { Parts } from '../parts/Parts.mjs';
@@ -212,6 +212,19 @@ export class OpcPackage implements RelationshipSource {
     const out: RelationshipsNamespaceWarning[] = [];
     for (const rels of [this.relationshipsPart, ...[...this.parts].map((p) => p.relationshipsPart)]) {
       for (const w of rels?.warnings ?? []) if (w.code === 'package.relationships_namespace') out.push(w);
+    }
+    return out;
+  }
+
+  /**
+   * Each relationships part that wasn't well formed and was read short, the relationships before the break kept (CR-032): the
+   * package's and its parts', in that order. A save is refused while one is here unless the load's `repair` is `'word'` or
+   * `'all'`, or `checkLossOnSave` is false. Not counted in `repaired`, as docx4j doesn't count it: it is read so at every value.
+   */
+  get relationshipsNotRead(): RelationshipsNotReadWarning[] {
+    const out: RelationshipsNotReadWarning[] = [];
+    for (const rels of [this.relationshipsPart, ...[...this.parts].map((p) => p.relationshipsPart)]) {
+      for (const w of rels?.warnings ?? []) if (w.code === 'part.not_read') out.push(w);
     }
     return out;
   }

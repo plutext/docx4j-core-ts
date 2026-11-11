@@ -3417,6 +3417,9 @@ Jason ruled three of the WD's open items (docx4j-portfolio `7c5ee35`, relayed by
    - **If the prefix is ever taken here,** the save needs one of two forms, as the portfolio's repair policy records:
      a save refused after such a load, or one copying the damaged relationships part and the unreached entries from
      the source. A save writes only the parts reachable through relationships.
+   - **Taken 2026-11-10, CR-032** (Jason: "docx4j's reading", as docx4j 17.3.6 has it): the prefix read at every value of
+     `repair`, `part.not_read` naming the relationships part with the count kept, and the first form, a save refused unless
+     the load's `repair` is `'word'` or `'all'` or `checkLossOnSave` is off.
 
 Still open in the WD: 0.72's (1), the caps chain's last link (Jason asks what the screen shows, not the text save),
 and the one rule for every part that is not a story part. WD 0.80 (2026-11-04) rules the first: the chain ends at a

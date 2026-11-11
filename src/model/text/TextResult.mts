@@ -588,7 +588,8 @@ export class TextWarning {
    * A part the reading consulted and needed for this document, but does not emit, that cannot be read (REQ-801, WD 0.66):
    * a styles, numbering or settings part, a document-properties part where the metadata is written, or a custom XML store
    * a binding names. The reading proceeds as for a package that lacks it; once per part, no address, the part's name the
-   * selector (CR-012 section 28).
+   * selector (CR-012 section 28). Also a relationships part that isn't well formed, read short at the load, its relationships
+   * before the break kept: the count kept its `detail` (CR-032; WD 0.76).
    */
   static readonly PART_NOT_READ = 'part.not_read';
   /**

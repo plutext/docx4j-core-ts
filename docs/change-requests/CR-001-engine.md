@@ -2758,7 +2758,9 @@ Each was read:
 | `9691c7369`, `b267f24ce`, `760f28c63`, `7f8f47543`, `c4082e6b7`, `69bcc29b7` | PDF output and metafiles | not ported: PDF |
 
 Two are open after this: a relationships part that isn't well formed (`e2d51d1e2`), and CR-028's
-repeated containers (`af50deffe`, `8c23c444f`).
+repeated containers (`af50deffe`, `8c23c444f`). Jason, the same day: "fix the Two things 17.3.6 does that this package doesn't
+yet". The first is CR-032, built. The second is CR-028's D2 (c), the objects package's CR-022, asked of its session, with phase 2
+here after its release.
 
 The text extraction suite changed between the tags too: 134 files, 2,936 lines added, among them a probe
 (`extraction-probe-opaque.docx`), HTML-reader tables and the understood namespaces file. It is still the
