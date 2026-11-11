@@ -23,7 +23,7 @@ import type { Body, BlockElement } from './Body.mjs';
 import { builtInOf, idOfBuiltIn, styleNameOf, styleIdOf } from './styles.mjs';
 import { cellOf, type TableCell } from './Table.mjs';
 import { ContentControl, collectRunControls, controlViewOf, plainTextLinesOf, textForRunControl, assertControlHolds, controlsOfTypes, holdsOneParagraph, showsPlaceholderWhenMade, BLOCK_CONTROL, type ContentControlType, type ContentControlOptions } from './ContentControl.mjs';
-import { breakParagraphAt, BREAKABLE } from './spanEdits.mjs';
+import { breakParagraphAt, BREAKABLE, placeBlocksAt } from './spanEdits.mjs';
 import { endsCell, endsWithParagraph, wrappingCellOf } from './tableRules.mjs';
 import { dropExcluded, forWriter, linesOf, officeItems, oneParagraphRun, holdsElementCharacters, type LineBreaks } from './officeText.mjs';
 import { sdt as sdtOf, nextSdtId, sdtProperty } from '@docx4j/generated-objects-ts/builders/wml';
@@ -483,27 +483,25 @@ export class Paragraph {
   }
 
   /**
-   * Word's `insertOoxml` at paragraph level: a flat OPC `pkg:package` (or a bare fragment). One
-   * incoming paragraph is merged into this one at 'Start' and 'End', as Word's paste does;
-   * anything else is inserted as blocks before or after. 'Replace' puts the content where this
-   * paragraph was and removes it.
+   * Word's `insertOoxml` at paragraph level: a flat OPC `pkg:package` (or a bare fragment). At 'Start' and 'End' it goes in
+   * as Word 365 puts it (CR-005 section 11.7, insertooxml-join ij06a and ij06b; `placeBlocksAt`): one paragraph inline, several
+   * with this paragraph split there, the package's first paragraph taking what comes before in its own properties and its
+   * last what follows in this one's. 'Replace' puts the content where this paragraph was and removes it. 'Before' and
+   * 'After' are this package's own, the blocks put in whole beside this paragraph: Office JS refuses them here
+   * (`InvalidArgument`, ij04 and ij05).
    */
   async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Start' | 'End' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
     this.assertWritable();
     const preprocess = this.parentBody.package_?.loadOptions.preprocessor;
     const elements = await insertedContentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: this.parentBody.part, package: this.parentBody.package_ });
     if (elements.length === 0) return [];
-    const only = elements.length === 1 && typeNameOf(elements[0]!) === 'org_docx4j_wml.P' ? (elements[0]!.value as wml.P) : undefined;
-    if (only && (location === 'Start' || location === 'End')) {
-      this.insertItemsAt(location === 'Start' ? 0 : this.text.length, (only.content ?? []) as Element[]);
-      return [this];
-    }
+    if (location === 'Start' || location === 'End') return placeBlocksAt(this, location === 'Start' ? 0 : this.text.length, elements);
     if (location === 'Replace') {
       const inserted = this.parentBody.insertElement(elements, 'Before', this, 'GeneralException', this.element);
       void inserted;
       this.delete();
     } else {
-      this.parentBody.insertElement(elements, location === 'Start' ? 'Before' : location === 'End' ? 'After' : location, this, 'GeneralException');
+      this.parentBody.insertElement(elements, location, this, 'GeneralException');
     }
     return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
       ? new Paragraph(el as Element<wml.P>, this.container, this.parentBody)

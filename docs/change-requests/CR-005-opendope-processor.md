@@ -934,13 +934,77 @@ fragment on open. The files are in `test/fragments/io46/` with a SHA-1 manifest.
 
   Three mutants, each caught: insertOoxml not reconciled, undefined styles kept, no default list.
 
-**Known differences, for Jason:**
+**Known differences:**
 - **Word joins the package's last paragraph to the paragraph it is inserted Before** (case 1: "...portrait A4.After the
-  control.", one paragraph, as a paste does). This package inserts the package's blocks before that paragraph, whole, as it did.
-  Which paragraph's properties the joined paragraph keeps isn't measured: both were plain here. The tests compare around it, and
-  pin both shapes.
+  control.", one paragraph, as a paste does). Settled by section 11.7: this package now joins as Word does.
 - **The plain text control (2) in Word's run showed the escaped Flat OPC as its text**, filled from its node at the check's
   open. In 46c's saves, beside the `w15` control, it showed its placeholder. This was a check's open for editing, not a save's,
   so it is a lead for REQ-509 (section 11.5), not a result. The tests set that one paragraph beside this package's own.
 - **Part 6(b), the engine's two outputs through the Word bridge, is the portfolio's** once part 1 is in a release. The
   route-(i) save of 46c (both controls) and the altChunk route's are this package's to give it.
+
+### 11.7 `insertOoxml` joining paragraphs, as Word 365's (2026-11-11)
+
+**Decided** (Jason: "Paragraph joining: do the bridge case so we can follow Word"). Section 11.6's case 1 showed Word joining the
+package's last paragraph to the paragraph it went Before. The portfolio's bridge round `insertooxml-join` measured which
+paragraph's properties each join keeps.
+
+**The round:**
+- Word 365 16.0.20326.20232, bridge `22479f7`, 2026-11-11, eleven Office JS checks, every one silent.
+- A hand-written template: five paragraphs with distinct styles, alignment, indents and mark and run properties.
+- Three packages:
+  - `pkg3`: a FragFirst paragraph, a plain one, and a FragLast one with a mark and a coloured run;
+  - `pkgTable`: a FragFirst paragraph and then a table;
+  - `pkg1`: a single FragLast paragraph.
+- The files are in `test/fragments/ij/`, with a SHA-1 manifest.
+
+**Word's rule**, as a paste. The insertion point is a text offset in a paragraph P:
+- **One paragraph goes in inline** (ij08): its runs at the offset, P keeping its properties. FragLast is not applied.
+- **Otherwise P is split at the offset:**
+  - **The package's first paragraph takes the text before the offset, in its own properties.** Where nothing comes before, it
+    stands alone (ij01, ij09a). In ij03, ij06b and ij09b it read "Bravo middle First package paragraph." in FragFirst, Bravo's
+    right alignment gone.
+  - **The paragraphs between go in whole.**
+  - **The package's last paragraph takes the text after the offset, in P's properties, its mark's run properties too.** In ij01
+    it read "Last package paragraph.Alpha target." with Alpha's TargetStyle, indent and italic mark, FragLast's alignment, indent
+    and underlined mark gone. Where nothing follows (ij06b), it is P's properties holding the package's text.
+  - **Each run keeps its own properties:** the package's blue run, Alpha's bold one.
+- **A package ending with a table** leaves P whole after the table (ij07).
+- **The insertion points:**
+  - `Range` `Before`: the range's start.
+  - `Range` `After` a range holding its paragraph's mark: the next paragraph's start (ij02, joined to Delta).
+  - `Range` `Replace`: where the range's content was (ij03).
+  - `Paragraph` `Start` and `End`: the paragraph's start and end (ij06a, ij06b).
+  - `Body` `Start` and `End`: the first paragraph's start and the last's end (ij09a, ij09b).
+- **`Paragraph.insertOoxml` `Before` and `After`** are refused by Office JS, `InvalidArgument` (ij04, ij05).
+- The `Range` `insertOoxml` returns holds the package's text alone.
+
+**As built:**
+- `placeBlocksAt(p, offset, elements)` in `spanEdits.mts`. It uses `splitParagraph`, or `splitAtEnd` at the end, as a paragraph
+  break splits a paragraph, so P keeps its identity, its section break and its mark. The head takes the package's first
+  paragraph's `w:pPr` and its runs; P takes the last paragraph's runs at its start.
+- A bound block control refuses it first, with `GeneralException` (CR-002 section 61).
+- `Range.insertOoxml`, `Paragraph.insertOoxml` `Start` and `End`, and `Body.insertOoxml` `Start` and `End` (where the body's
+  first or last block is a paragraph) place through it.
+- **Kept as before, not measured:**
+  - `Paragraph.insertOoxml` `Before` and `After` stay this package's own: the blocks whole beside the paragraph, where Office JS
+    refuses them.
+  - `Range` `Replace` with a package that doesn't start and end with a paragraph (a table alone: after the paragraph, then its
+    text taken; `table-rules.test.mjs`).
+  - `Range` `After` where no paragraph follows.
+  - `Body` `Start` or `End` where the edge block is a table.
+  - Under tracking, the head's new properties are written with no `w:pPrChange` (not measured).
+- **Behaviour changes:**
+  - one paragraph at a body's `End` now joins the last paragraph inline;
+  - a package's first paragraph joins the body's last paragraph.
+
+  `br-placement.test.mjs` and `content-c.test.mjs` hold the new forms.
+
+**Tests:**
+- `fragments.test.mjs`:
+  - each of the nine checks Word ran, block for block: each paragraph's `w:pPr` and its runs, adjacent runs alike in properties as
+    one, as Word writes them;
+  - the two refused, as this package's own;
+  - section 11.6's cases 1 and 4, now Word's paragraphs exactly.
+- Three mutants, each caught: the head keeping its own properties; `After` a whole paragraph staying in it; the join without
+  the bound-control check.

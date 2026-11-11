@@ -231,7 +231,8 @@ test('insertOoxml: a pkg:package with an image is copied in with fresh names and
   assert.notEqual(carried.relId, pictures[0].relId);
   assert.equal(target.body.tables.length, 1);
   assert.deepEqual(target.body.tables[0].values, [['x', 'y']]);
-  assert.match(target.body.text, /before\rfrom the other package/);
+  // the package's first paragraph joins the body's last, as Word 365's insertOoxml at a body's End joins it (CR-005 section 11.7, ij09b)
+  assert.match(target.body.text, /beforefrom the other package/);
 
   const back = await WordprocessingMLPackage.load(await target.save());
   const body = await back.getBody();

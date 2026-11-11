@@ -1,0 +1,161 @@
+{
+ "case": "J5",
+ "target": {
+  "kind": "paragraph",
+  "para": "Charlie end target.",
+  "loc": "After"
+ },
+ "package": "pkg3",
+ "host": {
+  "host": "Word",
+  "version": "16.0.20326.20232",
+  "platform": "PC"
+ },
+ "before": {
+  "errors": {},
+  "count": 5,
+  "paragraphs": [
+   {
+    "text": "Alpha target.",
+    "style": "TargetStyle",
+    "alignment": "Centered",
+    "leftIndent": 36,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 12,
+    "inTable": 0
+   },
+   {
+    "text": "Bravo middle WORD target.",
+    "style": "Normal",
+    "alignment": "Right",
+    "leftIndent": 0,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 0,
+    "inTable": 0
+   },
+   {
+    "text": "Charlie end target.",
+    "style": "TargetStyle",
+    "alignment": "Centered",
+    "leftIndent": 36,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 12,
+    "inTable": 0
+   },
+   {
+    "text": "Delta single target.",
+    "style": "Normal",
+    "alignment": "Left",
+    "leftIndent": 0,
+    "firstLineIndent": 18,
+    "spaceBefore": 0,
+    "spaceAfter": 0,
+    "inTable": 0
+   },
+   {
+    "text": "Echo last.",
+    "style": "Normal",
+    "alignment": "Left",
+    "leftIndent": 0,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 0,
+    "inTable": 0
+   }
+  ],
+  "ooxml": {
+   "body": "<w:body><w:p><w:pPr><w:pStyle w:val=\"TargetStyle\"/><w:ind w:left=\"720\"/><w:rPr><w:i/></w:rPr></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t>Alpha target.</w:t></w:r></w:p><w:p><w:pPr><w:jc w:val=\"right\"/></w:pPr><w:r><w:t>Bravo middle WORD target.</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"TargetStyle\"/><w:ind w:left=\"720\"/></w:pPr><w:r><w:t>Charlie end target.</w:t></w:r></w:p><w:p><w:pPr><w:ind w:firstLine=\"360\"/></w:pPr><w:r><w:t>Delta single target.</w:t></w:r></w:p><w:p><w:r><w:t>Echo last.</w:t></w:r></w:p><w:p/><w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/><w:pgMar w:top=\"1440\" w:right=\"1440\" w:bottom=\"1440\" w:left=\"1440\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/><w:cols w:space=\"720\"/></w:sectPr></w:body>",
+   "styles": [
+    "<w:style w:type=\"paragraph\" w:customStyle=\"1\" w:styleId=\"TargetStyle\"><w:name w:val=\"TargetStyle\"/><w:basedOn w:val=\"Normal\"/><w:qFormat/><w:pPr><w:spacing w:after=\"240\"/><w:jc w:val=\"center\"/></w:pPr></w:style>",
+    "<w:style w:type=\"character\" w:customStyle=\"1\" w:styleId=\"TargetChar\"><w:name w:val=\"TargetChar\"/><w:basedOn w:val=\"DefaultParagraphFont\"/><w:rPr><w:i/></w:rPr></w:style>"
+   ],
+   "styleIds": [
+    "Normal",
+    "DefaultParagraphFont",
+    "TableNormal",
+    "NoList",
+    "TargetStyle",
+    "TargetChar"
+   ]
+  }
+ },
+ "inserted": false,
+ "returnedText": null,
+ "after": {
+  "errors": {},
+  "count": 5,
+  "paragraphs": [
+   {
+    "text": "Alpha target.",
+    "style": "TargetStyle",
+    "alignment": "Centered",
+    "leftIndent": 36,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 12,
+    "inTable": 0
+   },
+   {
+    "text": "Bravo middle WORD target.",
+    "style": "Normal",
+    "alignment": "Right",
+    "leftIndent": 0,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 0,
+    "inTable": 0
+   },
+   {
+    "text": "Charlie end target.",
+    "style": "TargetStyle",
+    "alignment": "Centered",
+    "leftIndent": 36,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 12,
+    "inTable": 0
+   },
+   {
+    "text": "Delta single target.",
+    "style": "Normal",
+    "alignment": "Left",
+    "leftIndent": 0,
+    "firstLineIndent": 18,
+    "spaceBefore": 0,
+    "spaceAfter": 0,
+    "inTable": 0
+   },
+   {
+    "text": "Echo last.",
+    "style": "Normal",
+    "alignment": "Left",
+    "leftIndent": 0,
+    "firstLineIndent": 0,
+    "spaceBefore": 0,
+    "spaceAfter": 0,
+    "inTable": 0
+   }
+  ],
+  "ooxml": {
+   "body": "<w:body><w:p><w:pPr><w:pStyle w:val=\"TargetStyle\"/><w:ind w:left=\"720\"/><w:rPr><w:i/></w:rPr></w:pPr><w:r><w:rPr><w:b/></w:rPr><w:t>Alpha target.</w:t></w:r></w:p><w:p><w:pPr><w:jc w:val=\"right\"/></w:pPr><w:r><w:t>Bravo middle WORD target.</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val=\"TargetStyle\"/><w:ind w:left=\"720\"/></w:pPr><w:r><w:t>Charlie end target.</w:t></w:r></w:p><w:p><w:pPr><w:ind w:firstLine=\"360\"/></w:pPr><w:r><w:t>Delta single target.</w:t></w:r></w:p><w:p><w:r><w:t>Echo last.</w:t></w:r></w:p><w:p/><w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/><w:pgMar w:top=\"1440\" w:right=\"1440\" w:bottom=\"1440\" w:left=\"1440\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/><w:cols w:space=\"720\"/></w:sectPr></w:body>",
+   "styles": [
+    "<w:style w:type=\"paragraph\" w:customStyle=\"1\" w:styleId=\"TargetStyle\"><w:name w:val=\"TargetStyle\"/><w:basedOn w:val=\"Normal\"/><w:qFormat/><w:pPr><w:spacing w:after=\"240\"/><w:jc w:val=\"center\"/></w:pPr></w:style>",
+    "<w:style w:type=\"character\" w:customStyle=\"1\" w:styleId=\"TargetChar\"><w:name w:val=\"TargetChar\"/><w:basedOn w:val=\"DefaultParagraphFont\"/><w:rPr><w:i/></w:rPr></w:style>"
+   ],
+   "styleIds": [
+    "Normal",
+    "DefaultParagraphFont",
+    "TableNormal",
+    "NoList",
+    "TargetStyle",
+    "TargetChar"
+   ]
+  }
+ },
+ "errors": {
+  "insert": "InvalidArgument: InvalidArgument"
+ }
+}

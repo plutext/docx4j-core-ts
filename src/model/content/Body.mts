@@ -22,7 +22,7 @@ import { contentOf } from './ooxml.mjs';
 import { insertedContentOf } from './fragments.mjs';
 import { relationshipIdsIn, queueRelationshipRemovals, type RelationshipRemovals } from './relationships.mjs';
 import { type CellEnd, wrappingCellOf, paragraphEndOf, endsWithParagraph, endWithParagraph, endCellsWithParagraphs } from './tableRules.mjs';
-import { keepCellMarkLast } from './spanEdits.mjs';
+import { keepCellMarkLast, placeBlocksAt } from './spanEdits.mjs';
 import { expandReplacement, paragraphMarkPieces, refuseMarkReplacement, refuseWildcardMarkReplacement, type SearchOptions } from './search.mjs';
 import type { Bound } from './binder.mjs';
 
@@ -501,6 +501,13 @@ export class Body {
       const end = cell ? paragraphEndOf(cell.content as Element[] | undefined) : undefined;
       if (end && end.container === this.content) return this.insertContent(elements, 'Before', { element: end.element as Element, container: end.container }, 'GeneralException');
       return this.insertContent(elements, 'End', undefined, 'GeneralException');
+    }
+    // the body's Start and End are its first paragraph's start and its last's end, where those are paragraphs: the package goes
+    // in as Word 365 puts it there (CR-005 section 11.7, insertooxml-join ij09a and ij09b), else whole, as before
+    if ((location === 'Start' || location === 'End') && target === undefined && elements.length > 0) {
+      const edge = location === 'Start' ? this.content[0] : this.content[this.content.length - 1];
+      const paragraph = edge && typeNameOf(edge) === 'org_docx4j_wml.P' ? this.paragraphFor(edge.value as wml.P) : undefined;
+      if (paragraph) return placeBlocksAt(paragraph, location === 'Start' ? 0 : paragraph.text.length, elements);
     }
     return this.insertContent(elements, location, target, 'GeneralException');
   }

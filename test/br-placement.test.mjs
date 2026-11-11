@@ -250,8 +250,9 @@ test('insertOoxml: a fragment with a w:br outside a run, into a created package 
   assert.equal(pkg.loadOptions.preprocessor, undefined, 'a created package has no hook');
   await pkg.body.insertOoxml('<w:p><w:r><w:t>a</w:t></w:r><w:br/><w:r><w:t>b</w:t></w:r></w:p>', 'End');
   await pkg.body.insertOoxml('<w:p><w:r><w:t>c<w:br/>d</w:t></w:r></w:p>', 'End');
+  // one paragraph at the body's End goes in inline, as Word 365's insertOoxml puts it (CR-005 section 11.7): each repaired
   const texts = pkg.body.paragraphs.map((p) => p.text);
-  assert.deepEqual(texts.slice(-2), ['a\u000bb', 'c\u000bd']);
+  assert.equal(texts.at(-1), 'a\u000bbc\u000bd');
   await pkg.save();
   assert.deepEqual(pkg.lastSave.misplaced, []);
   // the flat OPC route loads a package, whose parts repair as any
@@ -260,7 +261,8 @@ test('insertOoxml: a fragment with a w:br outside a run, into a created package 
   const flatOpc = (await source.saveFlatOpc()).replace(/<w:t>MARKER<\/w:t>/, '<w:t>e<w:br/>f</w:t>');
   assert.ok(flatOpc.includes('<w:t>e<w:br/>f</w:t>'));
   await pkg.body.insertOoxml(flatOpc, 'End');
-  assert.equal(pkg.body.paragraphs.at(-1).text, 'e\u000bf');
+  // the package's one paragraph inline at the body's End, as above
+  assert.match(pkg.body.paragraphs.at(-1).text, /e\u000bf$/);
 });
 
 test('a caller\'s own hook sees the repaired DOM, and its warnings follow the repair\'s', async () => {

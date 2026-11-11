@@ -18,7 +18,7 @@ import { storyLayout, storyOf } from './story.mjs';
 import { Font } from './Font.mjs';
 import { GeneralException } from './generalException.mjs';
 import type { Paragraph } from './Paragraph.mjs';
-import type { Body } from './Body.mjs';
+import type { Body, BlockElement } from './Body.mjs';
 
 /** What a write needs of the `Range` it writes: its two ends, and whether it holds its last paragraph's mark. */
 export interface Span {
@@ -514,6 +514,63 @@ export function breakParagraphAt(p: Paragraph, offsets: readonly number[]): { fi
     consumed = offset;
   }
   return { first: first ?? p, last: tail };
+}
+
+/**
+ * A package's blocks put into paragraph `p` at text `offset` as Word 365's `insertOoxml` puts them (CR-005 section 11.7; the
+ * portfolio's bridge round insertooxml-join, eleven Office JS runs), as a paste does:
+ * - one paragraph goes in inline, its runs at the offset, `p` keeping its properties (ij08);
+ * - otherwise `p` is split at the offset. The package's first paragraph takes the text before it, in the package paragraph's own
+ *   properties (ij03, ij06b, ij09b: "Bravo middle First package paragraph." in FragFirst), or stands alone where nothing comes
+ *   before (ij01). The paragraphs between go in whole. The package's last paragraph takes the text after the offset, in `p`'s
+ *   properties, its mark's run properties too (ij01: "Last package paragraph.Alpha target." in Alpha's TargetStyle, indent and
+ *   italic mark; FragLast's gone), and keeps `p`'s identity and section break. Where nothing follows, it is `p`'s properties
+ *   with the package's text (ij06b).
+ * - A package ending with a table leaves what follows the offset as `p`, whole, after the table (ij07); one starting with a table
+ *   leaves what comes before it as a paragraph of its own, in `p`'s properties (not measured).
+ * Each run keeps its own properties. Returns the paragraphs and blocks the package's content is now in, in order (ij07's
+ * returned range: the package's text alone).
+ */
+export function placeBlocksAt(p: Paragraph, offset: number, elements: Element[]): (Paragraph | BlockElement)[] {
+  const body = p.parentBody;
+  const isP = (e: Element | undefined): boolean => e !== undefined && typeNameOf(e) === 'org_docx4j_wml.P';
+  const viewOf = (e: Element): Paragraph | BlockElement => (isP(e) ? body.paragraphFor(e.value as wml.P) ?? { element: e, container: p.container } : { element: e, container: p.container });
+  if (elements.length === 0) return [];
+  if (elements.length === 1 && isP(elements[0])) {
+    p.insertItemsAt(offset, ((elements[0]!.value as wml.P).content ?? []) as Element[]);
+    return [p];
+  }
+  const first = elements[0]!;
+  const last = elements[elements.length - 1]!;
+  const length = p.text.length;
+  // a bound block control holds one paragraph (CR-002 section 61): what would give it another block is refused before anything
+  // changes, with Word's error for insertOoxml; one of the package's paragraphs joins this one, the rest are blocks of their own
+  assertControlHolds(body, (p.p as { PARENT?: object }).PARENT ?? body.container, listOf(p), elements.slice(1), 'GeneralException');
+  // the text before the offset as a paragraph of its own in front of p (p keeps the rest, its mark and its identity)
+  const head = offset <= 0 ? undefined
+    : offset >= length ? splitAtEnd(p, rPrBefore(p, length)) : splitParagraph(p, offset, rPrBefore(p, offset));
+  const out: (Paragraph | BlockElement)[] = [];
+  let middle = elements;
+  if (head && isP(first)) {
+    // the package's first paragraph takes the head, in its own properties
+    const firstP = first.value as wml.P;
+    if (firstP.pPr) { head.p.pPr = deepCopy(firstP.pPr) as wml.PPr; linkParents(head.p.pPr, head.p); } else delete head.p.pPr;
+    head.insertItemsAt(head.text.length, (firstP.content ?? []) as Element[]);
+    out.push(head);
+    middle = middle.slice(1);
+  }
+  const lastP = isP(last) && (middle.length > 1 || middle[0] !== first || !head) ? last : undefined;
+  if (lastP) middle = middle.slice(0, -1);
+  if (middle.length > 0) {
+    body.insertElement(middle, 'Before', p, 'GeneralException');
+    out.push(...middle.map(viewOf));
+  }
+  if (lastP) {
+    // the package's last paragraph takes what follows, in p's properties
+    p.insertItemsAt(0, ((lastP.value as wml.P).content ?? []) as Element[]);
+    out.push(p);
+  }
+  return out;
 }
 
 /**

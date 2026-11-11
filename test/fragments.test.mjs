@@ -479,13 +479,9 @@ test('insertOoxml Before a paragraph reconciles as Word 365\'s does (io46-1): th
   const at = body.paragraphs.find((p) => p.text === 'After the control.');
   await at.getRange('Whole').insertOoxml(flatOf('io46-1-before'), 'Before');
   const ours = await snapshotOf(pkg);
-  // Known difference, for Jason: Word joins the fragment's last paragraph to the paragraph it went Before ("...portrait
-  // A4.After the control."); this package puts the fragment's blocks before it whole
-  const joined = word.after.paragraphs.at(-1).text;
-  assert.equal(joined, "Last paragraph of the fragment. Its section is landscape A5; the document's is portrait A4.After the control.");
-  assert.deepEqual(ours.slice(-2).map((p) => p.text), ["Last paragraph of the fragment. Its section is landscape A5; the document's is portrait A4.", 'After the control.']);
-  const oursJoined = [...ours.slice(0, -2), { ...ours.at(-2), text: ours.at(-2).text + ours.at(-1).text }];
-  assert.deepEqual(oursJoined, besideOurs(wordSnapshot(word), oursJoined));
+  // the fragment's last paragraph joins the paragraph it went Before, as Word joins it (section 11.7)
+  assert.equal(ours.at(-1).text, "Last paragraph of the fragment. Its section is landscape A5; the document's is portrait A4.After the control.");
+  assert.deepEqual(ours, besideOurs(wordSnapshot(word), ours));
   // the styles: the document's Heading 1, the fragment's own copied (Word also links a FootnoteTextChar, as in 46a)
   const styles = await pkg.getMainDocumentPart().styleDefinitionsPart.getContents();
   const ids = styles.style.map((s) => s.styleId);
@@ -526,8 +522,7 @@ test('insertOoxml of a package without its styles and numbering parts (io46-4): 
   const body = await pkg.getMainDocumentPart().getBody();
   await body.paragraphs.find((p) => p.text === 'After the control.').getRange('Whole').insertOoxml(flat, 'Before');
   const ours = await snapshotOf(pkg);
-  const oursJoined = [...ours.slice(0, -2), { ...ours.at(-2), text: ours.at(-2).text + ours.at(-1).text }];
-  assert.deepEqual(oursJoined, besideOurs(wordSnapshot(word), oursJoined));
+  assert.deepEqual(ours, besideOurs(wordSnapshot(word), ours));
   // the heading's Heading1, which the package doesn't define, is gone, though the document defines one
   assert.equal(ours.find((p) => p.text.startsWith('Fragment heading')).style, 'Normal');
   const styles = (await pkg.getMainDocumentPart().styleDefinitionsPart.getContents()).style.map((s) => s.styleId);
@@ -540,11 +535,87 @@ test('insertOoxml of a package without its styles and numbering parts (io46-4): 
   assert.deepEqual(word.after.ooxml.nums.map((n) => [n.numId, n.lvl0.numFmt]), [['1', 'decimal'], ['2', 'decimal']]);
 });
 
-test('insertOoxml of a bare fragment is as it was: nothing reconciled, nothing to reconcile', async () => {
+test('insertOoxml of a bare fragment: nothing reconciled, nothing to reconcile, and placed as a package is (one paragraph inline at the body\'s End)', async () => {
   const pkg = await io46Template();
   const body = await pkg.getMainDocumentPart().getBody();
   const before = (await pkg.getMainDocumentPart().styleDefinitionsPart.getContents()).style.length;
   await body.insertOoxml('<w:p><w:pPr><w:pStyle w:val="Unknown"/></w:pPr><w:r><w:t>bare</w:t></w:r></w:p>', 'End');
   assert.equal((await pkg.getMainDocumentPart().styleDefinitionsPart.getContents()).style.length, before);
-  assert.equal(body.paragraphs.at(-1).text, 'bare');
+  assert.equal(body.paragraphs.at(-1).text, 'After the control.bare');
+});
+
+// ------------------------------------------------------------------------------------------------ the join (section 11.7)
+
+// Word 365's insertOoxml of several paragraphs into a paragraph (the portfolio's bridge round insertooxml-join, eleven Office JS
+// runs on a hand-written template, read back straight after), in test/fragments/ij/ with a SHA-1 manifest. Each case's script
+// names its call (CASE, TARGET) and holds its package (OOXML); the same call is made here on the same template.
+const ij = join(dir, 'ij');
+const ijManifest = JSON.parse(readFileSync(join(ij, 'manifest.json'), 'utf8'));
+const ijCases = Object.keys(ijManifest.files).filter((f) => f.endsWith('.check-result.json')).map((f) => f.replace('.check-result.json', '')).sort();
+const ijScript = (c) => {
+  const js = readFileSync(join(ij, `${c}.check-script.js`), 'utf8');
+  const constant = (name) => JSON.parse(new RegExp(`const ${name} = (.*?);\\n`, 's').exec(js)[1]);
+  return { target: constant('TARGET'), ooxml: constant('OOXML') };
+};
+const W_DECLARED = `xmlns:w="${W}" xmlns:r="${R}" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml"`;
+
+/** A body's blocks as the join is read: each paragraph's properties and its runs, adjacent runs alike in properties as one (Word's form). */
+function blocksOfBody(xml) {
+  const doc = parseXml(xml.includes('<w:document') ? xml : `<x ${W_DECLARED}>${xml}</x>`);
+  const body = elements(doc, 'body')[0];
+  const out = [];
+  for (const block of [...body.childNodes].filter((c) => c.nodeType === 1)) {
+    if (block.localName === 'sectPr') continue;
+    if (block.localName === 'tbl') { out.push({ table: elements(block, 't').map((t) => t.textContent) }); continue; }
+    const runs = [];
+    for (const r of elements(block, 'r')) {
+      const rPr = canon(childrenNamed(r, 'rPr')[0]);
+      const text = elements(r, 't').map((t) => t.textContent).join('');
+      if (runs.length > 0 && runs.at(-1).rPr === rPr) runs.at(-1).text += text; else runs.push({ rPr, text });
+    }
+    out.push({ pPr: canon(childrenNamed(block, 'pPr')[0]), runs: runs.filter((r) => r.text !== '') });
+  }
+  // getOoxml ends a body with an empty paragraph of its own
+  while (out.length > 0 && out.at(-1).runs?.length === 0 && out.at(-1).pPr === '') out.pop();
+  return out;
+}
+
+async function ijRun(c) {
+  const { target, ooxml } = ijScript(c);
+  const restore = quiet();
+  try {
+    const pkg = await OpcPackage.load(new Uint8Array(readFileSync(join(ij, 'ij-template.docx'))));
+    const body = await pkg.getMainDocumentPart().getBody();
+    const p = target.para === undefined ? undefined : body.paragraphs.find((x) => x.text === target.para);
+    let returned;
+    if (target.kind === 'body') returned = await body.insertOoxml(ooxml, target.loc);
+    else if (target.kind === 'range') returned = await p.getRange('Whole').insertOoxml(ooxml, target.loc);
+    else if (target.kind === 'paragraph') returned = await p.insertOoxml(ooxml, target.loc);
+    else returned = await p.search(target.find, { matchCase: true, matchWholeWord: true })[0].insertOoxml(ooxml, target.loc);
+    return { pkg, returned, blocks: blocksOfBody(strFromU8(entriesOf(await pkg.save())['word/document.xml'])) };
+  } finally { restore(); }
+}
+
+test('the join\'s round: its files as the manifest has them, every check opened silently, Paragraph.insertOoxml Before and After refused by Office JS', () => {
+  for (const [name, sha1] of Object.entries(ijManifest.files)) assert.equal(createHash('sha1').update(new Uint8Array(readFileSync(join(ij, name)))).digest('hex'), sha1, name);
+  assert.equal(ijCases.length, 11);
+  for (const c of ijCases) assert.equal(JSON.parse(readFileSync(join(ij, `${c}.result.json`), 'utf8')).opened, 'silent', c);
+  for (const c of ['ij04-para-before-p1', 'ij05-para-after-p3']) assert.match(JSON.stringify(JSON.parse(readFileSync(join(ij, `${c}.check-result.json`), 'utf8')).errors), /InvalidArgument/, c);
+});
+
+for (const c of ijCases.filter((x) => !/ij04|ij05/.test(x))) {
+  test(`insertOoxml joins as Word 365's does (${c}): each paragraph's properties, its runs and theirs, block for block`, async () => {
+    const word = JSON.parse(readFileSync(join(ij, `${c}.check-result.json`), 'utf8'));
+    const { blocks } = await ijRun(c);
+    assert.deepEqual(blocks, blocksOfBody(word.after.ooxml.body));
+  });
+}
+
+test('Paragraph.insertOoxml Before and After, which Office JS refuses: this package\'s own, the package\'s blocks whole beside the paragraph', async () => {
+  for (const [c, loc] of [['ij04-para-before-p1', 'Before'], ['ij05-para-after-p3', 'After']]) {
+    const { blocks } = await ijRun(c);
+    const word = JSON.parse(readFileSync(join(ij, `${c}.check-result.json`), 'utf8'));
+    assert.equal(word.after?.count ?? word.before.count, word.before.count, `${c}: Word left the document as it was`);
+    assert.equal(blocks.length, 5 + 3, `${c} ${loc}: three paragraphs beside the five`);
+  }
 });

@@ -24,7 +24,7 @@ import type { TableCell } from './Table.mjs';
 import { storyLayout, storyOf, type StoryLayout } from './story.mjs';
 import { styleNameOf, builtInOf } from './styles.mjs';
 import { GeneralException } from './generalException.mjs';
-import { extentOf, assertTrackable, deleteSpan, firstCharacterOf, placeReplacement, insertParagraphAt, formatSpan, type Extent } from './spanEdits.mjs';
+import { extentOf, assertTrackable, deleteSpan, firstCharacterOf, placeReplacement, insertParagraphAt, formatSpan, placeBlocksAt, type Extent } from './spanEdits.mjs';
 
 /**
  * A subset of Office JS `Word.Range`: a span of text from an offset in one paragraph to an offset in the same
@@ -539,13 +539,13 @@ export class Range {
   }
 
   /**
-   * Word's `insertOoxml` at range level: a flat OPC `pkg:package` (or a bare fragment). One
-   * incoming paragraph's runs go at the start or the end of the span, or in its place; anything
-   * else is inserted as blocks before or after the paragraph. Returns what was inserted, as
-   * `insertXml` does. Across paragraphs (check 54 case 35) one paragraph's runs replace the range as
-   * `insertText('Replace')` replaces it, where the paragraphs joined; the start is the first paragraph's,
-   * the end the last's; several blocks go before the first paragraph or after the last, and replacing a
-   * range across paragraphs with several blocks is refused, as unmeasured.
+   * Word's `insertOoxml` at range level: a flat OPC `pkg:package` (or a bare fragment), put in as Word 365 puts it, as a paste
+   * (CR-005 section 11.7, the bridge round insertooxml-join): at the range's start (`Before`), its end (`After`; past a mark the
+   * range holds, the next paragraph's start, ij02), or where its content was (`Replace`, ij03), by `placeBlocksAt`: one
+   * paragraph inline; several, the paragraph there split, the package's first paragraph taking what comes before in its own
+   * properties and its last what follows in the paragraph's. Returns what holds the package's content, as `insertXml` does.
+   * Replacing a range across paragraphs with several blocks is refused, as unmeasured (check 54 case 35 measured one paragraph's
+   * runs, which replace it as `insertText('Replace')` does).
    */
   async insertOoxml(ooxml: string, location: 'Before' | 'After' | 'Replace'): Promise<(Paragraph | BlockElement)[]> {
     this.assertWritableSpan();
@@ -553,26 +553,36 @@ export class Range {
     const preprocess = body.package_?.loadOptions.preprocessor;
     const elements = await insertedContentOf(ooxml, { preprocess: preprocess ? (doc) => preprocess(doc) : undefined, target: body.part, package: body.package_ });
     if (elements.length === 0) return [];
-    const only = elements.length === 1 && typeNameOf(elements[0]!) === 'org_docx4j_wml.P' ? elements[0]!.value as { content?: Element[] } : undefined;
-    if (only) {
-      if (location === 'Replace') {
-        const landing = this.removeKeepingMark('insertOoxml');
-        landing.paragraph.insertItemsAt(landing.offset, (only.content ?? []));
-        return [landing.paragraph];
+    const isP = (e: Element | undefined): boolean => e !== undefined && typeNameOf(e) === 'org_docx4j_wml.P';
+    const one = elements.length === 1 && isP(elements[0]);
+    if (location === 'Replace') {
+      if (!one && this.spansParagraphs) {
+        throw new NotSupportedError('Range', 'insertOoxml', "several blocks in place of a range across paragraphs, which Word wasn't measured doing (CR-014)");
       }
-      const [paragraph, at] = location === 'Before' ? [this.paragraph, this.start] : [this.endParagraph, this.end];
-      paragraph.insertItemsAt(at, (only.content ?? []));
-      return [paragraph];
+      // a package that starts and ends with a paragraph goes where the range was, joined (ij03); anything else after the
+      // paragraph, its text then taken, as before (a table alone in a cell keeps the cell's mark last: table-rules, unmeasured)
+      if (one || (isP(elements[0]) && isP(elements[elements.length - 1]))) {
+        const landing = this.removeKeepingMark('insertOoxml');
+        return placeBlocksAt(landing.paragraph, landing.offset, elements);
+      }
+      body.insertElement(elements, 'After', this.endParagraph);
+      this.removeKeepingMark('insertOoxml');
+      return elements.map((el) => isP(el) ? body.paragraphFor(el.value as never) ?? { element: el, container: this.endParagraph.container } : { element: el, container: this.endParagraph.container });
     }
-    if (location === 'Replace' && this.spansParagraphs) {
-      throw new NotSupportedError('Range', 'insertOoxml', "several blocks in place of a range across paragraphs, which Word wasn't measured doing (CR-014)");
+    if (location === 'Before') return placeBlocksAt(this.paragraph, this.start, elements);
+    if (this.holdsEndMark) {
+      // past the mark: the next paragraph's start (ij02); where the next block isn't a paragraph, or there is none, the
+      // blocks after the paragraph, as before (not measured)
+      const container = this.endParagraph.container;
+      const next = container[container.indexOf(this.endParagraph.element) + 1];
+      const nextParagraph = next && typeNameOf(next) === 'org_docx4j_wml.P' ? body.paragraphFor(next.value as never) : undefined;
+      if (nextParagraph) return placeBlocksAt(nextParagraph, 0, elements);
+      body.insertElement(elements, 'After', this.endParagraph);
+      return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
+        ? body.paragraphFor(el.value as never) ?? { element: el, container }
+        : { element: el, container });
     }
-    const target = location === 'Before' ? this.paragraph : this.endParagraph;
-    body.insertElement(elements, location === 'Before' ? 'Before' : 'After', target);
-    if (location === 'Replace') this.removeKeepingMark('insertOoxml');
-    return elements.map((el) => typeNameOf(el) === 'org_docx4j_wml.P'
-      ? body.paragraphFor(el.value as never) ?? { element: el, container: target.container }
-      : { element: el, container: target.container });
+    return placeBlocksAt(this.endParagraph, this.end, elements);
   }
 
   /**

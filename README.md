@@ -405,7 +405,9 @@ await body.insertXml('<w:p><w:pPr><w:pStyle w:val="Heading1"/></w:pPr><w:r><w:t>
 Word 365's `insertOoxml` does: the pictures and other parts it refers to copied, the styles it uses that the
 document lacks copied (the document's own win), each of its lists a new one, its notes copied, its last section
 dropped ([CR-005](docs/change-requests/CR-005-opendope-processor.md) section 11.6). A style or list the package
-names but doesn't define reads as Word reads it: the default style, and Word's default list.
+names but doesn't define reads as Word reads it: the default style, and Word's default list. It is placed as Word places
+it, as a paste (section 11.7): one paragraph goes in inline; several split the paragraph there, the package's first
+paragraph taking the text before in its own properties and its last the text after in that paragraph's.
 
 Typed content is built with the objects package's generated factories and appended with
 `addObject` (docx4j) or `insertElement`, which links parent pointers and rejects what a body
