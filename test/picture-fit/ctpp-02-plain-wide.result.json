@@ -1,0 +1,74 @@
+{
+ "word": "16.0.20326.20318",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "ctpp-02-plain-wide.word.docx",
+   "format": "docx",
+   "bytes": 15349,
+   "sha256": "bd17f9d965511da6a9c087a2d03eb8be3e8dff159fcde1eb652d7144576e067b"
+  },
+  {
+   "name": "ctpp-02-plain-wide.pdf",
+   "format": "pdf",
+   "bytes": 18303,
+   "sha256": "1d4a90e4c5b84986ac21f1ad0ad629efd3f18d8bfff9ad91136ca4283f84b1a3"
+  }
+ ],
+ "seconds": 4.3,
+ "timedOut": false,
+ "verb": "save",
+ "input": "ctpp-02-plain-wide.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "ctpp-02-plain-wide.docx",
+   "readOnly": true,
+   "saved": true
+  },
+  {
+   "format": "pdf",
+   "opened": "silent",
+   "name": "ctpp-02-plain-wide.docx",
+   "readOnly": true,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  },
+  {
+   "kind": "save-done",
+   "format": "pdf",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.24
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.6,
+ "workerExit": 0,
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "22479f7",
+  "installedAt": "2026-11-10T15:36:01"
+ }
+}

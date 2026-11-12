@@ -1,0 +1,30 @@
+{
+  "source": "ctpp-*: bridge/portfolio/<case>-a/, rounds core-ts-picture-fit (go 208) and core-ts-picture-fit-2 (go 214), bridge 22479f7, Word 365 16.0.20326.20318. pdu*: the editor's packages/editor-model/test/fixtures/pictures-dataurl/ at 513fa39, its rounds picture-dataurl and picture-placeholder, bridge 22479f7, the same Word",
+  "files": {
+    "ctpp-00-form-wide.docx": "33101ac8f59358630cf4d059ac340f8e7bf293a8",
+    "ctpp-00-form-wide.result.json": "6a3d12b4cc269d74f7c7b59910d30f10afd082ab",
+    "ctpp-00-form-wide.word.docx": "f701f45105f34adba09011fdba8b26b5b34ee660",
+    "ctpp-01-form-tall.docx": "a6a2a91180ea48bf113470673cd5523cf2d3ebec",
+    "ctpp-01-form-tall.result.json": "7d9db37198ef5c1ce87c49bf2038902fa3e4891e",
+    "ctpp-01-form-tall.word.docx": "e470859d55dfce79475afac21d485c1906b3eaf8",
+    "ctpp-02-plain-wide.docx": "68ab11ad9b8803c79dcd6d8af255b7c781dd5d01",
+    "ctpp-02-plain-wide.result.json": "ad86144560733e46132be983b94f4ebfeb572c04",
+    "ctpp-02-plain-wide.word.docx": "11c2611cbc7f6247f275f091f18c55ee02560e16",
+    "ctpp-03-plain-tall.docx": "ad807a54a6dcbcdc5fa6b1bd1336fe9b4a5a3eaf",
+    "ctpp-03-plain-tall.result.json": "94e382f31e5cab38171c38ddc12ec3a7208a8672",
+    "ctpp-03-plain-tall.word.docx": "cd74173ec967234335bf55eed7abd7be37728f54",
+    "ctpp-04-wide-box-tall.docx": "3636bf5da5304f5d01e11f3bd145cb19a7e55b3b",
+    "ctpp-04-wide-box-tall.result.json": "21547b51cb8cdedbb6072594a833cef172418ea4",
+    "ctpp-04-wide-box-tall.word.docx": "c1bfb1a6e0b000ea4460ba1172c22239ab1f04ee",
+    "pdu1-base64-empty-word365.docx": "0029680f754b8decaca1fa431a469357903449ca",
+    "pdu1-base64-empty.docx": "e8e550d58ea133620ce26cd39774056ce31a8aa3",
+    "pdu4-base64-filled-word365.docx": "b6d216c3731eaf12b459bb14c530bfde8ca82c9e",
+    "pdu4-base64-filled.docx": "e9780e00241b37ee96a3e0dbb2fd5aecb319786b",
+    "pdu5-base64-text-noflag-word365.docx": "80b2129e3886527092e9856ee0cf24eddc79b72f",
+    "pdu5-base64-text-noflag.docx": "8874b5fd25c27a3342c65af80a69116b0bace4d7",
+    "pdu6-base64-placeholder-flag-word365.docx": "b47a72c192cba66bbb7634649f0a80d896ecf9e2",
+    "pdu6-base64-placeholder-flag.docx": "8c1442cdba74a536e50ec2b752b433c673c1b3d0",
+    "pdu7-base64-empty-content-word365.docx": "34b4530b231d257d6e113b3936732e14f1852a16",
+    "pdu7-base64-empty-content.docx": "033fd78f3e63a114538c62cda1ca4e65d6451860"
+  }
+}

@@ -55,10 +55,12 @@ test('the tag\'s width parameter is read: absent keeps the drawing, auto and N s
   assert.deepEqual(pictureWidthOf(tagParamsOf('od:xpath=x1&od:Handler=picture&width=wide')), { kind: 'auto' });
 });
 
-test('(a) a picture content control with a w:dataBinding: the blip points at a new image part, the drawing keeps its extent; saved and reloaded', async () => {
+test("(a) a picture content control with a w:dataBinding: the blip points at a new image part, the drawing kept, the picture fitted inside its box as Word fits it (CR-005 section 10.2, E1); saved and reloaded", async () => {
   const { pkg, body, data } = await document();
   const p = body.insertParagraph('', 'End');
   const before = p.insertInlinePictureFromBase64(SMALL, 'End', { name: 'placeholder.png' });
+  // the template's box, 4 x 3 pixels at 96 dpi (before is a view: it reads the drawing as it is now)
+  assert.deepEqual([before.width * EMU_PER_POINT, before.height * EMU_PER_POINT], [38100, 28575]);
   const control = p.insertContentControl('Picture');
   control.title = 'Logo';
   assert.equal(control.type, 'Picture');
@@ -66,8 +68,10 @@ test('(a) a picture content control with a w:dataBinding: the blip points at a n
   assert.equal(control.xmlMapping.setMapping('/data/logo', '', data), true);
   const picture = control.pictureContentControl.inlinePicture;
   assert.ok(bytesEqual(await picture.imagePart().getBytes(), base64Decode(BLUE)), 'the picture shows the node\'s image');
-  assert.equal(picture.width, before.width, 'the extent is the template\'s');
-  assert.equal(picture.height, before.height);
+  // the 6 x 3 picture inside the template's 4 x 3 box: its width, and half its height
+  assert.equal(picture.width * EMU_PER_POINT, 38100, 'the box\'s width');
+  assert.equal(picture.height * EMU_PER_POINT, 19050, 'the height fitted to the picture\'s 2:1');
+  assert.match(await control.getXml(), /<a:ext cx="38100" cy="19050"\/>/, 'a:ext alike');
   assert.equal(picture.element, before.element, 'the drawing itself is kept');
   assert.deepEqual(imageParts(pkg), ['/word/media/image1.png', '/word/media/image2.png'], 'the template image stays in the package');
 
@@ -236,6 +240,8 @@ test('an SVG value replaces a picture (the drawing kept, the part image/svg+xml)
   assert.equal(control.xmlMapping.setMapping('/data/svg', '', data), true);
   const picture = control.pictureContentControl.inlinePicture;
   assert.equal(picture.imageFormat, 'Svg');
+  // an SVG has no pixel size to fit, so the box is kept (CR-005 section 10.2)
+  assert.deepEqual([picture.width * EMU_PER_POINT, picture.height * EMU_PER_POINT], [38100, 28575]);
   // under the asvg:svgBlip, with no r:embed, as Word puts a bound SVG there (check 47; CR-002 section 52)
   assert.equal(picture.relId, undefined);
   assert.equal(picture.imagePart(), undefined);
@@ -382,12 +388,13 @@ test("CR-005 section 10, D1 (a2): a picture control whose node is empty shows Wo
   assert.deepEqual(imageParts(pkg), before);
   await pkg.customXmlParts.updateFromContentControls();
   assert.equal(data.selectNodes('/data/empty')[0].text, '');
-  // a picture in the node: shown in the placeholder's drawing, its extent kept, the flag cleared (check 71, case 6)
+  // a picture in the node: shown in the placeholder's drawing, the flag cleared (check 71, case 6), the 2:1 picture
+  // fitted inside the square as Word fits it (CR-005 section 10.2, E1)
   data.selectNodes('/data/empty')[0].text = BLUE;
   await pkg.customXmlParts.applyBindings();
   assert.equal(empty.isShowingPlaceholder, false);
   assert.ok(bytesEqual(await bytesOfBlip(pkg, empty), base64Decode(BLUE)));
-  assert.match(await empty.getXml(), /<wp:extent cx="1270000" cy="1270000"\/>/);
+  assert.match(await empty.getXml(), /<wp:extent cx="1270000" cy="635000"\/>/);
   // emptied again: the placeholder back, the flag on (case 7)
   data.selectNodes('/data/empty')[0].text = '';
   await pkg.customXmlParts.applyBindings();
@@ -417,4 +424,148 @@ test("CR-005 section 10, D2: insertContentControl('Picture') on an empty paragra
   const around = p.insertContentControl('Picture');
   assert.equal(around.isShowingPlaceholder, false);
   assert.ok(bytesEqual(await bytesOfBlip(pkg, around), base64Decode(SMALL)));
+});
+
+test("CR-005 section 10.2: showPicturePlaceholder and the two constants are exported from '.' and './model'; a caller building the control itself draws Word's form with them", async () => {
+  const root = await import('../dist/index.mjs');
+  const model = await import('../dist/model/index.mjs');
+  for (const name of ['showPicturePlaceholder', 'PICTURE_PLACEHOLDER_BASE64', 'PICTURE_PLACEHOLDER_EMU']) {
+    assert.ok(name in root, `${name} from '.'`);
+    assert.equal(root[name], model[name], `${name} the same from './model'`);
+  }
+  assert.equal('picturePlaceholderRun' in root, false, 'the run builder stays internal');
+  // docx4j's picture: 676 bytes, 200 by 200 pixels, its SHA-1; Word's extent, 100 points square
+  const bytes = base64Decode(root.PICTURE_PLACEHOLDER_BASE64);
+  assert.equal(bytes.length, 676);
+  assert.equal(await sha1(bytes), PLACEHOLDER_SHA1);
+  assert.deepEqual([imageInfoOf(bytes).widthPx, imageInfoOf(bytes).heightPx], [200, 200]);
+  assert.equal(root.PICTURE_PLACEHOLDER_EMU, 1270000);
+
+  // the editor's route: addImage at the extent gives the drawing at Word's 1270000 EMU square
+  const { pkg, body } = await document();
+  const main = pkg.getMainDocumentPart();
+  const added = addImage(main, root.PICTURE_PLACEHOLDER_BASE64, body.container, root.PICTURE_PLACEHOLDER_EMU);
+  const p = body.insertParagraph('', 'End');
+  const control = p.insertContentControl('Picture');
+  control.setBoundContent([added.run], true);
+  assert.equal(control.isShowingPlaceholder, true);
+  assert.match(await control.getXml(), /<w:showingPlcHdr\/>[\s\S]*<wp:extent cx="1270000" cy="1270000"\/>/);
+  assert.equal(await sha1(await bytesOfBlip(pkg, control)), PLACEHOLDER_SHA1);
+
+  // showPicturePlaceholder on an existing control: text and no flag (Word repairs such a file, the editor's pdu5) to Word's form
+  const text = body.insertParagraph('Click or tap to insert a picture.', 'End').insertContentControl('Picture');
+  assert.equal(text.isShowingPlaceholder, false);
+  assert.equal(root.showPicturePlaceholder(text), true);
+  const xml = await text.getXml();
+  assert.equal(text.isShowingPlaceholder, true);
+  assert.doesNotMatch(xml, /<w:t[ >]/, 'the text gone');
+  assert.match(xml, /<w:showingPlcHdr\/>[\s\S]*<w:sdtContent><w:p><w:r><w:drawing>[\s\S]*<wp:extent cx="1270000" cy="1270000"\/>/);
+  assert.equal(await sha1(await bytesOfBlip(pkg, text)), PLACEHOLDER_SHA1);
+  // saved and reloaded, both read as Word's form
+  const reloaded = await WordprocessingMLPackage.load(await pkg.save());
+  const controls = (await reloaded.getBody()).contentControls;
+  assert.deepEqual(controls.map((c) => [c.type, c.isShowingPlaceholder]), [['Picture', true], ['Picture', true]]);
+});
+
+/** The first `wp:extent` and `a:ext` in the XML, and whether it holds the flag. */
+function drawingOf(xml) {
+  return {
+    extent: /<wp:extent cx="(\d+)" cy="(\d+)"\/>/.exec(xml).slice(1).map(Number),
+    ext: /<a:ext cx="(\d+)" cy="(\d+)"\/>/.exec(xml).slice(1).map(Number),
+    flag: /<w:showingPlcHdr\/>/.test(xml),
+  };
+}
+
+test("CR-005 section 10.2, E1: a mapped picture control's node picture fitted inside the drawing's box as Word 365 fits it, flag or not (the bridge rounds core-ts-picture-fit and -2, test/picture-fit/)", async () => {
+  const { readFileSync } = await import('node:fs');
+  const dir = new URL('./picture-fit/', import.meta.url);
+  const manifest = JSON.parse(readFileSync(new URL('manifest.json', dir), 'utf8'));
+  for (const [name, hash] of Object.entries(manifest.files)) assert.equal(await sha1(readFileSync(new URL(name, dir))), hash, name);
+  assert.equal(Object.keys(manifest.files).length, 25);
+  // the box Word was given, and what its save holds
+  const cases = {
+    'ctpp-00-form-wide': [[1270000, 1270000], [1270000, 635000]],
+    'ctpp-01-form-tall': [[1270000, 1270000], [635000, 1270000]],
+    'ctpp-02-plain-wide': [[1270000, 1270000], [1270000, 635000]],
+    'ctpp-03-plain-tall': [[1270000, 1270000], [635000, 1270000]],
+    'ctpp-04-wide-box-tall': [[1270000, 635000], [317500, 635000]],
+  };
+  for (const [name, [box, fitted]] of Object.entries(cases)) {
+    const result = JSON.parse(readFileSync(new URL(`${name}.result.json`, dir), 'utf8'));
+    assert.deepEqual([result.word, result.opened, result.dialogs, result.complete], ['16.0.20326.20318', 'silent', [], true], name);
+    const pkg = await WordprocessingMLPackage.load(readFileSync(new URL(`${name}.docx`, dir)));
+    await pkg.customXmlParts.load();
+    const [control] = (await pkg.getBody()).contentControls;
+    const before = drawingOf(await control.getXml());
+    assert.deepEqual([before.extent, before.ext], [box, box], `${name}: the box as built`);
+    assert.equal(before.flag, name.includes('form'), `${name}: the flag as built`);
+    const word = await WordprocessingMLPackage.load(readFileSync(new URL(`${name}.word.docx`, dir)));
+    const [saved] = (await word.getBody()).contentControls;
+    const words = drawingOf(await saved.getXml());
+    assert.deepEqual(words, { extent: fitted, ext: fitted, flag: false }, `${name}: Word's save`);
+    // bound here: Word's extent and a:ext, the flag cleared, Word's image
+    assert.deepEqual(await pkg.customXmlParts.applyBindings(), { bound: 1, updated: 1, skipped: 0 }, name);
+    assert.deepEqual(drawingOf(await control.getXml()), words, `${name}: bound as Word fills it`);
+    assert.ok(bytesEqual(await bytesOfBlip(pkg, control), await bytesOfBlip(word, saved)), `${name}: Word's image, the node's`);
+    // bound again: the picture fills its own box, so nothing moves
+    await pkg.customXmlParts.applyBindings();
+    assert.deepEqual(drawingOf(await control.getXml()), words, `${name}: a second bind changes nothing`);
+    const reloaded = (await (await WordprocessingMLPackage.load(await pkg.save())).getBody()).contentControls[0];
+    assert.deepEqual(drawingOf(await reloaded.getXml()), words, `${name}: saved and reloaded`);
+  }
+});
+
+test('CR-005 section 10.2, E1: a floating picture in a mapped picture control fitted too, wp:extent and a:ext; a tag-bound one keeps its extent', async () => {
+  const { pkg, body, data } = await document();
+  const main = pkg.getMainDocumentPart();
+  const template = addImage(main, SMALL, body.container, undefined, { name: 'template.png' });
+  const [p] = await body.insertXml(anchoredParagraphXml(template.relId, 1270000, 1270000, 7), 'End');
+  const control = p.insertContentControl('Picture');
+  assert.equal(control.type, 'Picture');
+  // the 6 x 3 picture into a square anchor: the width kept, the height halved; the anchor's position and wrapping kept
+  assert.equal(control.xmlMapping.setMapping('/data/logo', '', data), true);
+  const xml = await control.getXml();
+  assert.deepEqual(drawingOf(xml), { extent: [1270000, 635000], ext: [1270000, 635000], flag: false });
+  assert.match(xml, /<wp:positionH relativeFrom="column"><wp:posOffset>914400<\/wp:posOffset><\/wp:positionH>/);
+  assert.match(xml, /<wp:wrapSquare wrapText="bothSides"\/>/);
+  // the same drawing tag-bound (od:Handler=picture, no width): docx4j's extent kept (REQ-061), since Word never fills one
+  const [q] = await body.insertXml(anchoredParagraphXml(template.relId, 1270000, 1270000, 8), 'End');
+  const tagged = q.insertContentControl('RichText');
+  tagged.tag = 'od:xpath=x1&od:Handler=picture';
+  await pkg.customXmlParts.applyBindings();
+  assert.deepEqual(drawingOf(await tagged.getXml()), { extent: [1270000, 1270000], ext: [1270000, 1270000], flag: false });
+  assert.ok(bytesEqual(await bytesOfBlip(pkg, tagged), base64Decode(BLUE)));
+});
+
+test("CR-005 section 10.2, E2: the editor's rounds (test/picture-fit/pdu*): where the control holds a picture, Word's fill; where it holds text or nothing, Word leaves it and this package fills it, a recorded difference", async () => {
+  const { readFileSync } = await import('node:fs');
+  const dir = new URL('./picture-fit/', import.meta.url);
+  const TEXT = 'Click or tap here to enter text.';
+  // the node is a 120 x 60 pixel PNG: placed new, at its natural size, 1143000 x 571500 EMU
+  const NATURAL = [1143000, 571500];
+  const cases = {
+    'pdu4-base64-filled': { word: { flag: false, extent: NATURAL, text: '' }, ours: NATURAL },
+    'pdu6-base64-placeholder-flag': { word: { flag: false, extent: [1270000, 635000], text: '' }, ours: [1270000, 635000] },
+    // E2: Word fills none of these, having no picture to swap (pdu5 it repairs, "Word found unreadable content")
+    'pdu1-base64-empty': { word: { flag: true, extent: null, text: TEXT }, ours: NATURAL },
+    'pdu5-base64-text-noflag': { word: { flag: false, extent: null, text: TEXT }, ours: NATURAL },
+    'pdu7-base64-empty-content': { word: { flag: false, extent: null, text: '' }, ours: NATURAL },
+  };
+  const read = (xml) => ({
+    flag: /<w:showingPlcHdr\/>/.test(xml),
+    extent: /<wp:extent cx="(\d+)" cy="(\d+)"\/>/.exec(xml)?.slice(1).map(Number) ?? null,
+    text: [...xml.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join(''),
+  });
+  for (const [name, { word, ours }] of Object.entries(cases)) {
+    const saved = (await (await WordprocessingMLPackage.load(readFileSync(new URL(`${name}-word365.docx`, dir)))).getBody()).contentControls[0];
+    assert.deepEqual(read(await saved.getXml()), word, `${name}: Word's save`);
+    const pkg = await WordprocessingMLPackage.load(readFileSync(new URL(`${name}.docx`, dir)));
+    await pkg.customXmlParts.load();
+    const [control] = (await pkg.getBody()).contentControls;
+    assert.equal(control.type, 'Picture', name);
+    assert.deepEqual(await pkg.customXmlParts.applyBindings(), { bound: 1, updated: 1, skipped: 0 }, name);
+    assert.deepEqual(read(await control.getXml()), { flag: false, extent: ours, text: '' }, `${name}: bound here`);
+    assert.ok(bytesEqual(await bytesOfBlip(pkg, control), base64Decode(control.xmlMapping.customXmlNode.text)), `${name}: the node's picture`);
+    if (word.extent) assert.ok(bytesEqual(await bytesOfBlip(pkg, control), await bytesOfBlip(await saved.parentBody.part.package, saved)), `${name}: Word's image`);
+  }
 });

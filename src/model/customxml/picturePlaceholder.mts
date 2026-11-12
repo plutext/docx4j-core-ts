@@ -8,6 +8,10 @@
 // `org/docx4j/model/datastorage/picture-placeholder.png`, 676 bytes, SHA-1 e9e4ee21363e5c8d0f3200fd920b03d5e66e4ab7;
 // Jason's choice, 2026-10-25). Word keeps a control in this form as it stands, this picture included, and draws its own
 // picture icon over it (check 71's round 3).
+//
+// `showPicturePlaceholder` and the two constants are exported from '.' and './model' (CR-005 section 10.2), for a caller
+// that builds a picture control itself, as the editor does: `addImage(part, PICTURE_PLACEHOLDER_BASE64, scope,
+// PICTURE_PLACEHOLDER_EMU)` draws the picture at Word's extent. `picturePlaceholderRun` stays internal.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type { Part } from '../../parts/Part.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';

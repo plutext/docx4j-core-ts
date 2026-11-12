@@ -14,6 +14,10 @@
 // anchor, wrapping, position and extent (`BindingTraverserXSLT.xpathInjectImageRelId`; REQ-061). The
 // blip itself is changed as Word changes it, not as docx4j does (`setBlipImage`, CR-002 section 52):
 // its effects stay, which docx4j's bare `a:blip` drops, and an SVG goes under `asvg:svgBlip`.
+// Word's own picture control, mapped (a), is the one exception to the kept extent: Word fits the node's picture inside
+// the drawing's box, keeping its aspect ratio, whenever it fills one, flagged or not (CR-005 section 10.2, E1, the
+// portfolio's bridge rounds core-ts-picture-fit and -2), so the bind writes the extent Word would show. A tag-bound
+// control (b) keeps docx4j's extent; Word never fills one.
 // With a `width` parameter on the tag the content is replaced by a new inline picture
 // (`xpathInjectImage`; REQ-062): at its natural size, scaled down to fit `width=N` twips or the
 // text width, whichever is smaller; `width=auto` the text width alone. A control in a table cell
@@ -23,9 +27,11 @@
 // never written back, as docx4j's is not.
 import type * as wml from '@docx4j/generated-objects-ts/modules/org_docx4j_wml';
 import type * as dml from '@docx4j/generated-objects-ts/modules/org_docx4j_dml';
-import { find, type Element } from '../content/tree.mjs';
+import type * as wp from '@docx4j/generated-objects-ts/modules/org_docx4j_dml_wordprocessingDrawing';
+import type * as pic from '@docx4j/generated-objects-ts/modules/org_docx4j_dml_picture';
+import { find, isElement, typeNameOf, type Element } from '../content/tree.mjs';
 import type { ContentControl } from '../content/ContentControl.mjs';
-import { addImage, addImagePart, writableWidthEmu, setBlipImage, svgBlipOf } from '../content/InlinePicture.mjs';
+import { addImage, addImagePart, writableWidthEmu, setBlipImage, svgBlipOf, type ImageInfo } from '../content/InlinePicture.mjs';
 import { ContentTypes } from '../../opc/ContentTypes.mjs';
 import { ImagePart } from '../../parts/BinaryPart.mjs';
 import { base64Decode, base64Encode } from '../../xml/dom.mjs';
@@ -37,6 +43,11 @@ import { showPicturePlaceholder } from './picturePlaceholder.mjs';
 
 const EMU_PER_TWIP = 635;
 const BLIP = 'org_docx4j_dml.CTBlip';
+const INLINE = 'org_docx4j_dml_wordprocessingDrawing.Inline';
+const ANCHOR = 'org_docx4j_dml_wordprocessingDrawing.Anchor';
+const PIC = 'org_docx4j_dml_picture.Pic';
+/** docx4j's ImageInfo default when a format carries no resolution, as `naturalSizeEmu` takes it. */
+const DEFAULT_DPI = 96;
 
 /**
  * What the tag's `width` says: absent keeps the control's drawing and replaces its image; `auto`
@@ -79,6 +90,41 @@ function messageOf(e: unknown): string {
 function firstBlipOf(control: ContentControl): dml.CTBlip | undefined {
   for (const blip of find<dml.CTBlip>(control.sdt.sdtContent ?? {}, BLIP)) return blip;
   return undefined;
+}
+
+/**
+ * The `wp:inline` or `wp:anchor` whose `pic:pic` the blip fills, and that picture: undefined where the blip is anywhere
+ * else (a shape's fill, say), whose box this package doesn't refit.
+ */
+function frameOf(control: ContentControl, blip: dml.CTBlip): { frame: wp.Inline | wp.Anchor; picture: pic.Pic } | undefined {
+  const content = control.sdt.sdtContent ?? {};
+  for (const frame of [...find<wp.Inline>(content, INLINE), ...find<wp.Anchor>(content, ANCHOR)]) {
+    const first = frame.graphic?.graphicData?.any?.[0];
+    if (!isElement(first) || typeNameOf(first) !== PIC) continue;
+    const picture = first.value as pic.Pic;
+    if (picture.blipFill?.blip === blip) return { frame, picture };
+  }
+  return undefined;
+}
+
+/**
+ * Word's fit of a picture swapped into a drawing (CR-005 section 10.2, E1): the image, at the aspect ratio its pixels and
+ * resolution give, as large as fits inside the box `cx` by `cy`, one side the box's. Undefined for an image with no pixel
+ * size (an SVG) or a box with no area: the box is kept.
+ */
+function fitInsideBox(cx: number, cy: number, info: ImageInfo): { cx: number; cy: number } | undefined {
+  if (!(cx > 0 && cy > 0 && info.widthPx > 0 && info.heightPx > 0)) return undefined;
+  const w = info.widthPx / (info.dpiX || DEFAULT_DPI);
+  const h = info.heightPx / (info.dpiY || DEFAULT_DPI);
+  // the box's width binds where cx / w <= cy / h
+  return cx * h <= cy * w
+    ? { cx, cy: Math.max(1, Math.round((cx * h) / w)) }
+    : { cx: Math.max(1, Math.round((cy * w) / h)), cy };
+}
+
+/** Whether Word fills the control from its node on open: its own picture control, mapped by a `w:dataBinding`. */
+function filledByWord(control: ContentControl): boolean {
+  return control.type === 'Picture' && control.xmlMapping.dataBinding !== undefined;
 }
 
 /** A width stated in twips (`dxa`, or no type), else undefined. */
@@ -125,7 +171,9 @@ function maxWidthEmu(control: ContentControl, width: PictureWidth): number | und
  * Binds one control to a value: base64 image data (a data URL accepted). With `keep`, the first
  * `a:blip` is pointed at a new image part and the drawing is left as it is, as Word binds a picture
  * control (`setBlipImage`: a raster image in `r:embed`, the `asvg:svgBlip` taken away; an SVG under
- * the `asvg:svgBlip`, `r:embed` taken away; the effects kept; CR-002 section 52); a picture
+ * the `asvg:svgBlip`, `r:embed` taken away; the effects kept; CR-002 section 52). Where Word fills the control, a mapped
+ * picture control, the drawing's extent (`wp:extent`, and `a:ext` where the picture has one) becomes the image fitted
+ * inside it, keeping its aspect ratio, as Word's is on open (`fitInsideBox`; CR-005 section 10.2, E1); a picture
  * control holding no picture gets a new inline one at its natural size instead (docx4j's pre-v3
  * fallback), a tag-bound control holding none is left and noted. Otherwise the control's content
  * becomes one run holding a new inline picture, sized as `PictureWidth` says, in the first
@@ -151,12 +199,15 @@ export function bindPicture(control: ContentControl, value: string, width: Pictu
   if (width.kind === 'keep') {
     const blip = firstBlipOf(control);
     if (blip) {
+      let info: ImageInfo;
       try {
         const added = addImagePart(source, base64);
         setBlipImage(blip, added.relId, added.info.contentType === ContentTypes.IMAGE_SVG);
+        info = added.info;
       } catch (e) {
         return { done: false, note: `${label}: not an image this package reads (${messageOf(e)})` };
       }
+      if (filledByWord(control)) fitDrawing(control, blip, info);
       control.isShowingPlaceholder = false;
       return { done: true };
     }
@@ -171,6 +222,18 @@ export function bindPicture(control: ContentControl, value: string, width: Pictu
   }
   control.setBoundContent([run]);
   return { done: true };
+}
+
+/** The drawing the blip fills given the image's extent fitted inside its own (E1); nothing where it has no box to fit. */
+function fitDrawing(control: ContentControl, blip: dml.CTBlip, info: ImageInfo): void {
+  const held = frameOf(control, blip);
+  const extent = held?.frame.extent;
+  const fitted = extent && fitInsideBox(extent.cx, extent.cy, info);
+  if (!held || !extent || !fitted) return;
+  extent.cx = fitted.cx;
+  extent.cy = fitted.cy;
+  const ext = held.picture.spPr?.xfrm?.ext;
+  if (ext) { ext.cx = fitted.cx; ext.cy = fitted.cy; }
 }
 
 /** Binds one tag-bound control (shape b): the entry's node, the tag's width. */

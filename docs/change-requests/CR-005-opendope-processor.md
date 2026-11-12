@@ -1,6 +1,6 @@
 # CR-005: An OpenDoPE processor in TypeScript, and an XPath 2 engine to evaluate it with
 
-**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, released in 0.4.0 (2026-10-09); Word checks 37 and 38 run 2026-10-08, both holding; section 8.1 item 4 (loose inline content under a container is one paragraph; 2026-10-15, found by the editor) implemented, **released in 0.5.0** (2026-10-19); section 10 (a picture control with no picture in Word's form, docx4j's check 71, 2026-10-25) implemented, **released in 0.6.0** (2026-10-25); section 11 (Word fragments, `od:progid=Word.Document`, and Word's `w15`-mapped rich text over Flat OPC, resolved as Word 365 resolves them; the editor's ED-005 proposal 46, parts 1 and 2, accepted by Jason 2026-11-11, with sections 11.6 and 11.7, `insertOoxml` as Word's) implemented 2026-11-11, **released in 0.8.0 (2026-11-11)**
+**Status:** Phase A implemented 2026-09-25 (section 7); phase B proposed; section 8 (escaped XHTML: the `html` module and the bind step, 2026-10-08) and section 9 (picture bindings, 2026-10-08) implemented, released in 0.4.0 (2026-10-09); Word checks 37 and 38 run 2026-10-08, both holding; section 8.1 item 4 (loose inline content under a container is one paragraph; 2026-10-15, found by the editor) implemented, **released in 0.5.0** (2026-10-19); section 10 (a picture control with no picture in Word's form, docx4j's check 71, 2026-10-25) implemented, **released in 0.6.0** (2026-10-25); section 11 (Word fragments, `od:progid=Word.Document`, and Word's `w15`-mapped rich text over Flat OPC, resolved as Word 365 resolves them; the editor's ED-005 proposal 46, parts 1 and 2, accepted by Jason 2026-11-11, with sections 11.6 and 11.7, `insertOoxml` as Word's) implemented 2026-11-11, **released in 0.8.0 (2026-11-11)**; section 10.2 (the picture placeholder exported for the editor; a mapped picture control's swapped picture fitted inside the drawing's box as Word 365 fits it, E1; a control Word leaves unfilled still filled, a recorded difference, E2) implemented 2026-11-13, unreleased
 **Depends on:** CR-002 phase E (`ContentControl`, `XmlMapping`, `CustomXmlPartCollection`,
 `DefaultXPathEngine`, `applyBindingsTo`); objects CR-003 phase A (`sdt`, `sdtProperty`,
 `nextSdtId`, `walkAll`, `deepCopyAs`)
@@ -469,7 +469,8 @@ drawing, which `addImage` now calls; `test/picture-binding.test.mjs`):
 
 1. **Shape (a) in the text pass.** `applyBindingTo` binds a picture control through `bindPicture`
    with `keep`: the first `a:blip` anywhere in the content points at a new image part and the
-   drawing is left as it is; a picture control holding no picture gets a new inline one at its
+   drawing is left as it is, its extent refitted to the picture since section 10.2's E1, as Word's
+   is; a picture control holding no picture gets a new inline one at its
    natural size (docx4j's fallback). `setMapping` applies as it writes (CR-002 section 39), so
    mapping a picture control fills it at once. The node's value is base64, a data URL's prefix
    dropped, decoded leniently as docx4j's MIME decoder does. A value that is not an image this
@@ -689,6 +690,91 @@ differently. It is left as it is unless the ports' saves need to agree part for 
 
 A control in the form is honoured as it is, so the rebind rule above (a control already showing its placeholder over a
 drawing left as it is) is Word's too.
+
+### 10.2 The form exported, and how Word fills it (the editor's rounds, 2026-11-12)
+
+**The export.** The editor builds its picture control in its own editing layer, not through `insertContentControl`. It
+writes placeholder text with the flag, which Word never fills from the node (its round `picture-dataurl`, Word 365
+16.0.20326.20318). Jason, through the editor, 2026-11-12: "yes, core-ts should export its picture placeholder
+(showPicturePlaceholder and the two constants)". `showPicturePlaceholder`, `PICTURE_PLACEHOLDER_BASE64` and
+`PICTURE_PLACEHOLDER_EMU` are exported from `.` and `./model`. `picturePlaceholderRun` stays internal, since its `scope` is
+the drawing ids' scope. A caller building the control itself draws the form with `addImage(part,
+PICTURE_PLACEHOLDER_BASE64, scope, PICTURE_PLACEHOLDER_EMU)`. `picture-binding.test.mjs` holds that route, and
+`showPicturePlaceholder` turning a text-holding control into the form.
+
+**How Word fills a mapped picture control** (the editor's rounds `picture-dataurl` and `picture-placeholder`, files and
+Word's saves in the editor's `packages/editor-model/test/fixtures/pictures-dataurl/`). Word fills one from its node only by
+swapping the picture the control already holds, flagged or not. A control holding no picture is never filled:
+
+| The control holds (node: a picture) | Word on open | This package's bind |
+|---|---|---|
+| This package's form, over a 2:1 picture (`pdu6`) | Silent. The picture shown, flag cleared. **The width kept and the height fitted:** 1270000 × 635000, with `wp:effectExtent r="6350"` | The picture swapped into the 1270000 square: drawn stretched |
+| A drawing of the picture's shape (`pdu4`) | Silent; the picture swapped, the extent kept | The same |
+| Placeholder text with the flag (`pdu1`, `pdu2`) | Silent; the text and flag kept, unfilled | The text replaced by the picture at its natural size, flag cleared |
+| Placeholder text without the flag (`pdu5`) | Repaired ("Word found unreadable content"); the text kept | The same as above, so Word then opens it |
+| Empty content, no flag (`pdu7`) | Silent; left empty | The picture at its natural size |
+
+So check 71's repair came from text without the flag. Check 71 bound only 64 × 64 pictures into the square placeholder,
+so it couldn't show the height fitted.
+
+**Measuring the fit** (Jason: "do the two more Word cases", 2026-11-12). Bridge set `core-ts-picture-fit`: four files built
+by 0.8.0 (`ctpp-*`, a block-level picture control mapped to `/data/pic`, the node holding the picture), each run twice, with a
+control set. It ran on bridge `22479f7`, the VM's go 208, Word 365 16.0.20326.20318. All ten jobs opened silently, each pair
+agreeing:
+
+| File | The drawing before | The node | Word's save |
+|---|---|---|---|
+| `ctpp-00-form-wide`, `pdu6` rebuilt | This package's form, 1270000 square, flag | 120 × 60 | 1270000 × 635000, `effectExtent r="6350"`, flag cleared |
+| `ctpp-01-form-tall` | The same | 60 × 120 | 635000 × 1270000, `effectExtent b="6350"`, flag cleared |
+| `ctpp-02-plain-wide` | A red 64 × 64 picture at 1270000 square, no flag | 120 × 60 | 1270000 × 635000, `effectExtent r="6350"` |
+| `ctpp-03-plain-tall` | The same | 60 × 120 | 635000 × 1270000, `effectExtent b="6350"` |
+
+In each save, `wp:extent` and `a:ext` agree, the one image is byte for byte the node's PNG, and the red picture and the part
+nothing used are gone. A square box can't tell "fit inside the box" from "keep the box's longer side", since both give
+these sizes.
+
+**The confirming case** (Jason: "E1, the fit: stage the one-file case", 2026-11-13). Bridge set `core-ts-picture-fit-2`:
+`ctpp-04-wide-box-tall`, an unflagged drawing 100 × 50 points (1270000 × 635000) of a red 128 × 64 picture, the node the
+60 × 120 picture `ctpp-01` and `ctpp-03` hold. Fitting inside gives 317500 × 635000; keeping the longer side, 635000 × 1270000.
+It ran twice, with a control set, on bridge `22479f7`, the VM's go 214, Word 365 16.0.20326.20318, every job silent. Both
+saves: `wp:extent` and `a:ext` **317500 × 635000**, `effectExtent r="6350"`, the one image the node's PNG byte for byte.
+
+**Word fits the node's picture inside the drawing's box, keeping its aspect ratio, with the flag or without it.** `pdu4`, a
+box already of the picture's shape, is the same rule. The `effectExtent` of 6350 EMU, half a point, on the shortened side is
+Word's and unexplained.
+
+**Decided** (Jason, 2026-11-13):
+- **E1: the fit. Built 2026-11-13**, after the confirming case Jason asked for first ("E1, the fit: stage the one-file
+  case"). When the bind swaps a node's picture into a mapped picture control's drawing, the extent becomes the picture
+  fitted inside the drawing's box, keeping its aspect ratio, as Word does (`wp:extent` and `a:ext` alike), whether or not
+  the flag is on. Before, the extent was kept, so a picture of another shape was drawn stretched. As built:
+  - `bindPicture`'s keep path, through `fitDrawing` and `fitInsideBox` in `pictures.mts`. It applies where Word fills
+    the control: Word's picture control with a `w:dataBinding`. The aspect ratio is the image's pixels over its declared
+    resolution, as `naturalSizeEmu` reads it. The box is the `wp:inline` or `wp:anchor` whose `pic:pic` holds the blip;
+    a blip anywhere else keeps its box.
+  - A tag-bound control (`od:Handler=picture` without `width`) keeps docx4j's extent (REQ-061): Word never fills one.
+  - An SVG has no pixel size, so its box is kept.
+  - `effectExtent` is left as it is. Word's 6350 is unexplained.
+  - The box is the drawing as it stands, so a bind after a picture of another shape fits inside the last one's box, as
+    Word's open would. A second bind of the same picture changes nothing.
+  - A floating picture is fitted by the same rule. Word was measured on inline pictures only.
+  - **Tests:** `test/picture-fit/` holds the two rounds: each input, Word's save and the bridge's `result.json`, copied
+    unedited from `bridge/portfolio/<case>-a/` with a SHA-1 manifest, and `build.mjs`, how the inputs were built. In
+    `picture-binding.test.mjs`, each case bound here gives Word's extent, `a:ext` and image, with the flag cleared, and
+    holds through a second bind and a save. A floating picture is fitted, and a tag-bound one keeps its extent. The
+    editor's `pdu6` now binds to Word's 1270000 × 635000 too. Five mutants, each caught: no fit; the fit on a tag-bound
+    control; `a:ext` left; cover rather than contain; and the box's longer side kept, which only `ctpp-04` catches.
+  - Word 2010's and Word 2013's saves of check 38 refit as well, one EMU short on one side (1904999 × 952500,
+    1905000 × 952499, over this package's and the template's 1905000 × 952500). Their rounding isn't followed.
+
+- **E2: the rows where this package fills and Word doesn't** (text flagged or not, empty content). **Decided 2026-11-13**
+  (Jason: "E2 recorded as a difference from Word"): the bind keeps filling them, a recorded difference. The bind is the
+  file's producer, and the picture it writes is shown by every reader and refilled by Word from then on. Following Word
+  would leave text or nothing over a node holding a picture, and the repair for unflagged text. Nothing in the code
+  changes. `test/picture-fit/` also holds five of the editor's files with Word's saves (`pdu1`, `pdu4` to `pdu7`, copied
+  unedited from its `513fa39`). `picture-binding.test.mjs` holds each Word save as the table above has it, and this
+  package's bind of each: Word's extent and image where Word fills, the node's picture at its natural size where it
+  doesn't.
 
 ## 11. Word fragments (`od:progid=Word.Document`), and Word's own mapped rich text over Flat OPC (2026-11-11)
 
