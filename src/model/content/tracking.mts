@@ -10,6 +10,7 @@ import * as el from '@docx4j/generated-objects-ts/el/org_docx4j_wml';
 import {
   createCTTrackChange, createCTRPrChange, createCTRPrChangeRPr, createCTPPrChange, createCTMarkup,
   createDelText, createPPr, createParaRPr, createTrPr, createParaRPrChange, createCTParaRPrOriginal,
+  createCTTcPrChange, createCTTblPrChange,
 } from '@docx4j/generated-objects-ts/factory/org_docx4j_wml';
 import { rPrToElements, rPrFromElements } from '@docx4j/generated-objects-ts/builders/wml';
 import { Docx4JException } from '../../opc/exceptions.mjs';
@@ -449,6 +450,42 @@ export class ChangeTracker {
     const original = deepCopyAsSync<wml.PPrBase>(pPr, 'org_docx4j_wml.PPrBase');
     pPr.pPrChange = createCTPPrChange({ ...this.markup(), pPr: original });
     linkParents(pPr.pPrChange, pPr);
+  }
+
+  /**
+   * Records a cell's properties as they are now in `w:tcPrChange`, once (a later write keeps the first original), as
+   * Word records a tracked `shadingColor` write (CR-002 section 67.3, ts09). `deepCopyAsSync` types the copy as
+   * `CT_TcPrInner`, which has no `w:tcPrChange`.
+   */
+  recordTcPrChange(tcPr: wml.TcPr): void {
+    if (tcPr.tcPrChange) return;
+    const original = deepCopyAsSync<wml.TcPrInner>(tcPr, 'org_docx4j_wml.TcPrInner');
+    tcPr.tcPrChange = createCTTcPrChange({ ...this.markup(), tcPr: original });
+    linkParents(tcPr.tcPrChange, tcPr);
+  }
+
+  /** `settleRPrChange` for a cell: its `w:tcPrChange` goes where its properties are back to what it recorded. */
+  settleTcPrChange(tcPr: wml.TcPr): void {
+    const change = tcPr.tcPrChange;
+    if (!change) return;
+    const { tcPrChange: _recorded, ...current } = tcPr;
+    if (canonical(current) === canonical(change.tcPr)) delete tcPr.tcPrChange;
+  }
+
+  /** Records a table's properties as they are now in `w:tblPrChange`, once; the copy is a `CT_TblPrBase`. */
+  recordTblPrChange(tblPr: wml.TblPr): void {
+    if (tblPr.tblPrChange) return;
+    const original = deepCopyAsSync<wml.CTTblPrBase>(tblPr, 'org_docx4j_wml.CTTblPrBase');
+    tblPr.tblPrChange = createCTTblPrChange({ ...this.markup(), tblPr: original });
+    linkParents(tblPr.tblPrChange, tblPr);
+  }
+
+  /** `settleRPrChange` for a table: its `w:tblPrChange` goes where its properties are back to what it recorded. */
+  settleTblPrChange(tblPr: wml.TblPr): void {
+    const change = tblPr.tblPrChange;
+    if (!change) return;
+    const { tblPrChange: _recorded, ...current } = tblPr;
+    if (canonical(current) === canonical(change.tblPr)) delete tblPr.tblPrChange;
   }
 
   /** `w:pPr/w:rPr/w:ins`: the paragraph mark is an insertion. */

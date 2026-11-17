@@ -14,6 +14,8 @@ import { type ChangeTracker, trackInsertedBlocks } from './tracking.mjs';
 import { insertGridColumns, deleteGridColumns, gridRangeOf, textWidthTwips, widthTypeOf, layoutModeOf, type TableLayoutMode } from './tableColumns.mjs';
 import { withinWord, WORD_STORAGE } from './wordRange.mjs';
 import { assignParaIds } from './paraIds.mjs';
+import { ItemNotFound } from './generalException.mjs';
+import { shadingColorOf, shadeCell, shadeRow, shadeTable, isContinuation, cellShadingOf, agreed, rowShadings } from './tableShading.mjs';
 
 /** The default table width in twips (A4 with 2.54 cm margins), as the objects package's `tbl` builder uses. */
 const DEFAULT_WIDTH = 9026;
@@ -120,13 +122,39 @@ export class Table {
     this.rows.forEach((row, i) => { row.isHeader = i < count; });
   }
 
-  /** The cell at a row and cell index; throws when there is none, as Office JS's getCell does. */
+  /**
+   * The cell at a row and cell index; throws when there is none, as Office JS's getCell does. At the place of a vertical
+   * merge's continuation it throws `ItemNotFound`, as Word 365 does (CR-002 section 67.3, ts07). Office JS doesn't count a
+   * continuation among its row's cells at all, so its later cells' indexes are one less there; `cells`, `cellCount` and
+   * the addresses here still count it, since an address names a `w:tc` (section 67.4).
+   */
   getCell(rowIndex: number, cellIndex: number): TableCell {
     const row = this.rows[rowIndex];
     if (!row) throw new Docx4JException(`No row ${rowIndex} in this table (${this.rowCount} rows)`);
     const cell = row.cells[cellIndex];
     if (!cell) throw new Docx4JException(`No cell ${cellIndex} in row ${rowIndex} (${row.cellCount} cells)`);
+    if (isContinuation(cell.tc)) throw new ItemNotFound(`Cell ${cellIndex} in row ${rowIndex} continues a vertical merge from the row above`);
     return cell;
+  }
+
+  /**
+   * Office JS `Table.shadingColor` (CR-002 section 67): what Word reads for every cell, `#RRGGBB` where they agree, '' where
+   * nothing shades them, null where they differ (typed as Office JS types it). A cell reads its own shading, else its
+   * table style's; never the table's own `w:tblPr/w:shd`.
+   */
+  get shadingColor(): string {
+    const resolver = this.parentBody.propertyResolver;
+    const context = resolver.tableContext(this.tbl);
+    return agreed(rowsOf(this.tbl, 'read').flatMap((row) => rowShadings(resolver, context, row.element.value))) as string;
+  }
+  /**
+   * Writes Word's shading of the colour (`#RRGGBB`, six hex digits or a CSS name) on the table's own `w:tblPr` and on
+   * every cell, as Word does, tracked where tracking is on. `""` or `null`, which Word fails on (WD-004), takes the
+   * table's and every cell's own shading away, so a table style's shows (section 67.3's E1).
+   */
+  set shadingColor(value: string) {
+    this.assertWritable();
+    shadeTable(this.tbl, shadingColorOf(value, 'Table.shadingColor'), this.changeTracker);
   }
 
   /** Adds rows at the start or the end, with the column count and widths of this table. */
@@ -317,6 +345,25 @@ export class TableRow {
     (trPr.cnfStyleOrDivIdOrGridBefore ??= []).push(el.tblHeader({}) as never);
   }
 
+  /**
+   * Office JS `TableRow.shadingColor` (CR-002 section 67): what Word reads for the row's cells, `#RRGGBB` where they agree,
+   * '' where nothing shades them, null where they differ; a vertical merge's continuation isn't among them, as Office JS
+   * counts a row's cells.
+   */
+  get shadingColor(): string {
+    const resolver = this.parentTable.parentBody.propertyResolver;
+    return agreed(rowShadings(resolver, resolver.tableContext(this.parentTable.tbl), this.tr)) as string;
+  }
+  /**
+   * Writes Word's shading of the colour on each `w:tc` of the row, a merge's continuation among them and never a restart
+   * in another row, as Word does; so on a row a merge reaches from above, the merged cell keeps the colour of its first
+   * row, which is the one Word draws. `""` or `null` takes the cells' own shading away (section 67.3's E1).
+   */
+  set shadingColor(value: string) {
+    this.assertWritable();
+    shadeRow(this.tr, shadingColorOf(value, 'TableRow.shadingColor'), this.parentTable.changeTracker);
+  }
+
   /** New rows before or after this one, with this table's columns. */
   insertRows(location: 'Before' | 'After', rowCount: number, values?: string[][]): TableRow[] {
     this.assertWritable();
@@ -482,6 +529,20 @@ export class TableCell {
   /** Refuses a write to a cell in a branch (CR-013 D4); its body's writes refuse too. Internal. */
   assertWritable(): void {
     assertOutsideBranch(this.tc, 'TableCell');
+  }
+
+  /**
+   * Office JS `TableCell.shadingColor` (CR-002 section 67): the colour Word draws the cell in, `#RRGGBB`, or '' for none:
+   * its own shading, else its table style's through the conditions it is under, a theme colour as drawn.
+   */
+  get shadingColor(): string {
+    const resolver = this.parentTable.parentBody.propertyResolver;
+    return cellShadingOf(resolver, resolver.tableContext(this.parentTable.tbl), this.parentRow.tr, this.tc);
+  }
+  /** Writes Word's shading of the colour on the cell; `""` or `null` takes its own away (section 67.3's E1). */
+  set shadingColor(value: string) {
+    this.assertWritable();
+    shadeCell(this.tc, shadingColorOf(value, 'TableCell.shadingColor'), this.parentTable.changeTracker);
   }
 
   /** Office JS TableCell.columnWidth, the same value. */

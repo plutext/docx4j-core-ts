@@ -1,6 +1,6 @@
 # CR-002: A content API in the shape of Office JS, over the docx4j tree
 
-**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half waiting on check 58 since 2026-10-23), and item 3 not scheduled then, done since by CR-012 phase 4 and CR-014 phase 3 (recorded 2026-10-23); section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), released in 0.6.0. Section 54 (2026-10-21, the port of docx4j CR-043 section 15): a comment whose range a resolution empties goes whole wherever its markers were, its range across paragraphs too, and with the last comment the comment parts, as Word 365 does; the revisions goldens record each resolution's comments (harness version 2). Implemented 2026-10-21, released in 0.6.0. Section 55 (2026-10-22, docx4j `18a3a31f4`'s measured table rule): a cell's last block, as Word reads it, must be a paragraph; nine edits here can break it, leaving an empty cell or one ending in a table (section 55.2). Proposed; D1 to D4 decided 2026-10-22 as recommended (repair at the edit, Word's shape once measured in check 52, inserted content's cells too, a file read as it is); check 52 run the same day: Word keeps a cell's last paragraph, emptied, with its properties, and under tracking deletes its text, not its mark (section 55.6). Implemented 2026-10-23 (section 55.7), released in 0.6.0: `tableRules.mts` (docx4j's `TableRules`), the edits keeping a cell's last paragraph as Word does and docx4j's repair elsewhere, check 52's cases 86 to 95 held to Word's run, save and Accept All. Section 56 (2026-10-22, docx4j `f62314d3b`'s nominal-date rule): a bound date's day, its `w:fullDate` and the reverse no longer depend on the machine's time zone, and `formatDate` formats a date's UTC fields. Implemented 2026-10-22, released in 0.6.0. Section 57 (2026-10-22, from check 53): an intentional departure, recorded. Office JS reads a paragraph after a nested table in a cell, unless it is Normal, as style `Other`; this package reads its own style. Sections 58 and 59 (2026-10-22, from check 53): proposed, to schedule later (section 58's two measurements in check 58, run 2026-10-23: the listing kept, K1, section 58.1); a paragraph's tracked changes as its parts of each change, and `Font` reads where runs differ, an automatic colour and an empty paragraph. Section 59 implemented 2026-10-23 (section 59.1; Office JS's types kept, Jason), released in 0.6.0: `Font` reads every run in scope, `null` where they differ, an empty paragraph its mark, an automatic colour `#000000`; the theme colour is CR-008 phase 2's. Section 60 (2026-10-23, from docx4j-python's report): proposed. The text writers put Office JS's characters (U+000B, U+000C, U+000E, U+001E, U+001F, U+0002) into a `w:t`, where they are not XML 1.0, and a bound control's break into its custom XML node; each is to become the element it reads as, U+0002 and the other excluded characters refused, with a guard at save. D1 to D5 decided 2026-10-23 as recommended (section 60.1); check 55, Word's writers, written and run the same day (sections 60.2 and 60.3): Word turns the characters into their elements, makes paragraphs of `\n` and `\r` in `insertText` and comments, and drops U+0002, U+0001 and U+0007. E1 to E4 decided the same day as recommended (section 60.4): `insertText` makes paragraphs, `insertParagraph` departs (a `w:br`, a `w:cr`), the excluded characters are dropped, and check 55b measures the bound controls. Check 55b run the same day (section 60.6): `contentControls` lists no plain-text control in Word, `getContentControls` finds them; a bound control's break goes to its node as `\r\n` and a non-breaking hyphen as `-`; F1 to F4 and G1 decided the same day as recommended (section 60.7). Implemented 2026-10-23 (section 60.8), released in 0.6.0. Section 61 (2026-10-23, from docx4j-python's Word check): proposed. Word can't open a file holding a bound block control with no type and two paragraphs, and this package writes one when `insertParagraph` adds a paragraph to such a control; a write that would give a bound plain-text block control a second block is to be refused, after check 56. D1 to D4 decided the same day as recommended (section 61.1); check 56 written and run the same day (sections 61.2 and 61.3): Word can't open a second block in any bound block control, `w:richText` and a table too, reads them all as plain text, refuses `insertTable` (`InvalidArgument`) and `insertOoxml` (`GeneralException`), and its own `insertParagraph` into a multi-line one writes a file it can't open. H1 to H4 decided the same day as recommended (section 61.4): every bound block control, `insertParagraph` Word's where readable, Word's error codes, `PlainText` reported. Implemented 2026-10-23 (section 61.5), released in 0.6.0. Section 61.6 (the same day, from docx4j-python's review): `applyBindings` over a bound block control holding more than one block writes one paragraph, as docx4j's `bind.xslt` does, and `setMapping` refuses to bind a plain-text block control holding more. Section 62 (2026-10-23, docx4j-python's review, items B2 and B11: a paragraph break inside a field's result, and a tracked delete of an equation): check 57 written the same day (section 62.1) and run in Word 365 (section 62.2); implemented the same day (section 62.3): a paragraph break inside a `w:fldSimple` makes it a complex field and splits it (D1), a tracked deletion takes an equation in Word's form (D2), Accept All takes an equation left empty (F1), and Word's form of a deleted equation reads as deleted (F2), each as Word 365 does in check 57. Section 63 (2026-10-24, from docx4j-python's port of CR-012 section 18): writing into a content control showing its placeholder; check 63 written and run the same day (sections 63.1 and 63.2): every text write into the control replaces the placeholder and clears the flag but the control's `insertParagraph`, the Placeholder Text style kept in a rich text control, and a Replace or delete over a run-level control takes it; this package differs in 44 of the 52 writes, three defects among them (F1 to F3). D1 to D7 proposed (section 63.3). Check 64 written and run the same day (sections 63.4 and 63.5): on controls in Word's own form (`w:placeholder` and a glossary entry) every write takes the placeholder away, plain, recorded under tracking as an insertion only, and reaches a bound control's node, so check 63's oddities come of the bare form docx4j and this package write; decisions revised (section 63.6), D8 proposed: write placeholders in Word's form; D1 to D8 decided the same day as recommended, not implemented; check 65 (what Word needs of D8's form: the reference alone, or a glossary of one part) written the same day (section 63.7) and run 2026-10-25 (section 63.8): the reference gives Word's form while the file is open, but Word's save keeps it only where the glossary holds the entry, and a glossary of the document part alone loses the Placeholder Text style; D8 settled by it, D9 (how much glossary to write) proposed (section 63.9); check 66, D9's two options given to Word, written and run 2026-10-25 (sections 63.10 and 63.11): the glossary document and styles parts do what Word's six do, the style and every reference kept through the run, a reopening and typing; D9 (a) decided the same day (Jason). Check 63 had run in Design Mode (sections 63.13 to 63.16: check 67, and check 63 again with it off): the bare form writes as Word's form, and D1, D2 (b), D3's tracked markup, D5 and D10 (Word's five-space filler) were decided as Word and implemented the same day (section 63.17). Implemented 2026-10-25 (section 63.12, `020c039`), released in 0.6.0: every text write into a control showing its placeholder as Word's, by form; a whole control under a Replace or delete taken, in Word's tracked markup; placeholders written in Word's form, `placeholderText` reading the glossary entry, and the glossary written on save. Through the Word shim every write of checks 63, 64 and 66 is Word's, and of 65 all but 65b's case 9; a tracked `insertParagraph('After')`'s mark, found on the way, is issue #4. Sections 53 to 63 **released in 0.6.0** (2026-10-25). Section 64 (2026-10-26, the editor's findings on 0.6.0's search, found building its Finder across marks): a mark tracked as moved from reads as nothing in Word's default view, as its runs do; a cell's paragraph finds its cell through row-level controls nested to any depth (a repeating section's items), so a wildcard search no longer crosses a table's edge there; and a search's character boundaries are found a stretch between control characters at a time, so a search across a long body costs what its paragraphs' do. Implemented 2026-10-26, not released. Section 65 (2026-10-26, Jason, from docx4j CR-066's round 5: Word 365 keeps each integer attribute in 16 bits and reads a value past that wrapped, with no error): the measurement setters write a value only where Word stores its attribute as written, else `InvalidArgument` naming the range and what Word would read (Jason: "yes, Guard the setters"); check 71 written, what Office JS's own setters do there. Implemented 2026-10-26, not released. Check 71 run the same day (section 65.5): Word's own indent and cell-width setters wrap in 16 bits as its reader does, and its spacing, line, list and font setters refuse with `InvalidArgument` at Word's own limits, below storage; `setLevelIndents`' label indent, read as an absolute position until then, is relative, as Word's (fixed); D1 and D2 proposed. D1 and D2 decided 2026-10-27 as recommended (section 65.8); check 71b, Word's own limits, written and run the same day (section 65.9): spacing 0 to 1584 pt, a line 0.75 to 1584 pt under an auto rule, a list's text indent short of 1584 pt either way, a font 1 to 1638 pt after rounding, taken as the five setters' policy (D2 implemented), and `lineSpacing` writes Word's auto rule where it had written exact (fixed). Not released.
+**Status:** Phases B and D implemented 2026-09-10 (section 7); phase A implemented 2026-09-10 as objects CR-002; phases C, G and I implemented 2026-09-15 (sections 8, 9 and 10); phases E and F implemented 2026-09-16 (sections 12 and 13; section 11 corrects `style` / `styleBuiltIn`); phase H implemented 2026-09-19 (section 17); section 16: `Font` and `Paragraph` reads effective since 2026-09-19 (CR-001 Phase B). Sections 19 to 21: the list definition verbs off the package, `Range.hyperlink`, and XPath readiness per document, 2026-09-25. Sections 22 to 27: requests from the editor, each with a review note; sections 28 and 29 its E4.c requests and two answers, 2026-09-27. Sections 22, 24, 26, 28.1 to 28.3 and section 27's located error implemented 2026-09-27 as the release section 30 costed and Jason scoped, with CR-006, fixed after a review of it (section 31), and **released as 0.2.0** the same day. Not in that release: section 25 (a new hyperlink's `Hyperlink` style), which this line called implemented from 2026-09-26 until the editor found otherwise on 0.2.0 - it was **implemented and released in 0.2.1** (2026-09-28), after its check in Word (section 25; `test/README.md` check 15), with a defect in the same setter fixed; section 33's (`parseXml` in a browser) fixed in 0.2.1 as well, section 32's item 2 (a stale `xml:space`) fixed in 0.2.1 at the editor's request, item 1's grapheme filter released in 0.2.2 (its wildcard code-point half waiting on check 58 since 2026-10-23), and item 3 not scheduled then, done since by CR-012 phase 4 and CR-014 phase 3 (recorded 2026-10-23); section 27's strict `setXml` (the editor's split design covers it); and section 29's move fix, from Word's Review tab (`test/README.md` check 18), released in 0.2.2 (2026-09-28) with section 25's case F, section 32 item 1 and section 34 (`noteAnnotationIds` and the exported `highestAnnotationId`, the editor's requests). Phase J **deferred** 2026-09-25 (section 18: list labels over a tree; proposed 2026-09-24 at the editor's request, which no longer needs it). Implemented since 0.2.2 and **released as 0.3.0** (2026-09-29; a minor version, the listing and dates being visible changes); section 37, the editor's findings on 0.3.0 (a replacement inside another's insertion, `styles.ensure` of the comment styles, content nested in an insertion left untracked, with `insertOoxml` into a paragraph untracked and a table left without rows), implemented 2026-09-29 and **not released**: section 25's merge of a new link's identical runs (case F) and its refusal of a link set at a caret (check 19), and section 29's fixes A to E from checks 20 and 21 - typed text splits a revision, an edited move is rejected with its destination's edits, an orphan destination is kept, a half without range markers resolved as an insertion or deletion and the rest of a broken move dissolved into them - and fix F from checks 22 and 23, touching insertions or deletions by one author listed and resolved as one change, as Office JS lists them; all 2026-09-28; and a revision's date, and a comment's, read and written as Word means them (section 29, found by check 23, Jason's decisions); and a rejected list paragraph's indent dropped where its level gives it, as Word does (section 29, check 18); and the editor's C5 findings - a joined paragraph's id, "all" leaving changes listed, an empty `w:trPr` (section 29). Checks 24 and 26: formatting changed back, run or paragraph, leaves no change, as Word does (section 29). Section 35, the tracked changes the engine did not list (section, table, grid, row, cell, a mark's run properties), and section 36, a comment's entry for markers the caller placed (`addCommentEntry`) and an empty range's comment markers as Word writes them, both implemented 2026-09-29 at the editor's request, **released in 0.3.0**. Section 37, the editor's findings on 0.3.0 (items 1 to 6, 2026-09-29; item 7 from Word checks 30 and 31, 2026-09-30 and 2026-10-01), and section 38, the editor's Word 2010 and 15 measurements with check 32's corrections (2026-09-30 to 2026-10-02), **released as 0.3.1** (2026-10-02). Section 38 item 2's carry withdrawn for a whole paragraph (Word check 33), section 39 (mapping takes the node's value, check 34) and section 40 (the editor's three requests from check 35, with check 36 and `@docx4j/generated-objects-ts` `^0.3.1`), **released as 0.3.2** (2026-10-04). Section 41 (`styles.ensure` falling back to Word's built-ins from docx4j's `KnownStyles.xml`) and section 42 (columns added and removed in Word's three layout modes, checks 39 to 41), implemented 2026-10-09, **released as 0.4.0** the same day with CR-005 sections 8 and 9. Section 43 (`Range.hyperlink` and `insertContentControl` refuse before changing anything, 2026-10-12) and sections 44 to 47 (accepting and rejecting: an inserted field as one change, a note gone with its reference, a bookmark gone whole, the parts only removed content referenced, pictures inserted and deleted under tracking; 2026-10-16 and 2026-10-17), implemented, **released in 0.5.0** (2026-10-19). Sections 48 to 51 (2026-10-18, the gaps sections 45 to 47 recorded, fixed before the next release at Jason's word): a picture's place in the text model, so a deletion takes the pictures in its span; `acceptAllRevisions` and `rejectAllRevisions` over every story; what a removed note or comment held going with it; and revisions inside equations. Implemented, **released in 0.5.0**. Section 52 (2026-10-18, from Word checks 43 to 47): an SVG picture's `getBase64` gives its SVG, as Office JS does, and `imageFormat` `Svg` (a departure: Office JS gives `null`); the picture binding changes a blip as Word does (effects kept; a raster value takes the `svgBlip` away, an SVG goes under it). Implemented, **released in 0.5.0**. Section 53 (2026-10-20, from CR-011's D4): a `TrackedChange` view whose record is gone, its change resolved by itself or by another verb, does nothing, where before most kinds acted again on what stood in its place. Implemented 2026-10-20, with `accept()` and `reject()` returning whether they acted (Jason, the editor's request), released in 0.6.0. Section 54 (2026-10-21, the port of docx4j CR-043 section 15): a comment whose range a resolution empties goes whole wherever its markers were, its range across paragraphs too, and with the last comment the comment parts, as Word 365 does; the revisions goldens record each resolution's comments (harness version 2). Implemented 2026-10-21, released in 0.6.0. Section 55 (2026-10-22, docx4j `18a3a31f4`'s measured table rule): a cell's last block, as Word reads it, must be a paragraph; nine edits here can break it, leaving an empty cell or one ending in a table (section 55.2). Proposed; D1 to D4 decided 2026-10-22 as recommended (repair at the edit, Word's shape once measured in check 52, inserted content's cells too, a file read as it is); check 52 run the same day: Word keeps a cell's last paragraph, emptied, with its properties, and under tracking deletes its text, not its mark (section 55.6). Implemented 2026-10-23 (section 55.7), released in 0.6.0: `tableRules.mts` (docx4j's `TableRules`), the edits keeping a cell's last paragraph as Word does and docx4j's repair elsewhere, check 52's cases 86 to 95 held to Word's run, save and Accept All. Section 56 (2026-10-22, docx4j `f62314d3b`'s nominal-date rule): a bound date's day, its `w:fullDate` and the reverse no longer depend on the machine's time zone, and `formatDate` formats a date's UTC fields. Implemented 2026-10-22, released in 0.6.0. Section 57 (2026-10-22, from check 53): an intentional departure, recorded. Office JS reads a paragraph after a nested table in a cell, unless it is Normal, as style `Other`; this package reads its own style. Sections 58 and 59 (2026-10-22, from check 53): proposed, to schedule later (section 58's two measurements in check 58, run 2026-10-23: the listing kept, K1, section 58.1); a paragraph's tracked changes as its parts of each change, and `Font` reads where runs differ, an automatic colour and an empty paragraph. Section 59 implemented 2026-10-23 (section 59.1; Office JS's types kept, Jason), released in 0.6.0: `Font` reads every run in scope, `null` where they differ, an empty paragraph its mark, an automatic colour `#000000`; the theme colour is CR-008 phase 2's. Section 60 (2026-10-23, from docx4j-python's report): proposed. The text writers put Office JS's characters (U+000B, U+000C, U+000E, U+001E, U+001F, U+0002) into a `w:t`, where they are not XML 1.0, and a bound control's break into its custom XML node; each is to become the element it reads as, U+0002 and the other excluded characters refused, with a guard at save. D1 to D5 decided 2026-10-23 as recommended (section 60.1); check 55, Word's writers, written and run the same day (sections 60.2 and 60.3): Word turns the characters into their elements, makes paragraphs of `\n` and `\r` in `insertText` and comments, and drops U+0002, U+0001 and U+0007. E1 to E4 decided the same day as recommended (section 60.4): `insertText` makes paragraphs, `insertParagraph` departs (a `w:br`, a `w:cr`), the excluded characters are dropped, and check 55b measures the bound controls. Check 55b run the same day (section 60.6): `contentControls` lists no plain-text control in Word, `getContentControls` finds them; a bound control's break goes to its node as `\r\n` and a non-breaking hyphen as `-`; F1 to F4 and G1 decided the same day as recommended (section 60.7). Implemented 2026-10-23 (section 60.8), released in 0.6.0. Section 61 (2026-10-23, from docx4j-python's Word check): proposed. Word can't open a file holding a bound block control with no type and two paragraphs, and this package writes one when `insertParagraph` adds a paragraph to such a control; a write that would give a bound plain-text block control a second block is to be refused, after check 56. D1 to D4 decided the same day as recommended (section 61.1); check 56 written and run the same day (sections 61.2 and 61.3): Word can't open a second block in any bound block control, `w:richText` and a table too, reads them all as plain text, refuses `insertTable` (`InvalidArgument`) and `insertOoxml` (`GeneralException`), and its own `insertParagraph` into a multi-line one writes a file it can't open. H1 to H4 decided the same day as recommended (section 61.4): every bound block control, `insertParagraph` Word's where readable, Word's error codes, `PlainText` reported. Implemented 2026-10-23 (section 61.5), released in 0.6.0. Section 61.6 (the same day, from docx4j-python's review): `applyBindings` over a bound block control holding more than one block writes one paragraph, as docx4j's `bind.xslt` does, and `setMapping` refuses to bind a plain-text block control holding more. Section 62 (2026-10-23, docx4j-python's review, items B2 and B11: a paragraph break inside a field's result, and a tracked delete of an equation): check 57 written the same day (section 62.1) and run in Word 365 (section 62.2); implemented the same day (section 62.3): a paragraph break inside a `w:fldSimple` makes it a complex field and splits it (D1), a tracked deletion takes an equation in Word's form (D2), Accept All takes an equation left empty (F1), and Word's form of a deleted equation reads as deleted (F2), each as Word 365 does in check 57. Section 63 (2026-10-24, from docx4j-python's port of CR-012 section 18): writing into a content control showing its placeholder; check 63 written and run the same day (sections 63.1 and 63.2): every text write into the control replaces the placeholder and clears the flag but the control's `insertParagraph`, the Placeholder Text style kept in a rich text control, and a Replace or delete over a run-level control takes it; this package differs in 44 of the 52 writes, three defects among them (F1 to F3). D1 to D7 proposed (section 63.3). Check 64 written and run the same day (sections 63.4 and 63.5): on controls in Word's own form (`w:placeholder` and a glossary entry) every write takes the placeholder away, plain, recorded under tracking as an insertion only, and reaches a bound control's node, so check 63's oddities come of the bare form docx4j and this package write; decisions revised (section 63.6), D8 proposed: write placeholders in Word's form; D1 to D8 decided the same day as recommended, not implemented; check 65 (what Word needs of D8's form: the reference alone, or a glossary of one part) written the same day (section 63.7) and run 2026-10-25 (section 63.8): the reference gives Word's form while the file is open, but Word's save keeps it only where the glossary holds the entry, and a glossary of the document part alone loses the Placeholder Text style; D8 settled by it, D9 (how much glossary to write) proposed (section 63.9); check 66, D9's two options given to Word, written and run 2026-10-25 (sections 63.10 and 63.11): the glossary document and styles parts do what Word's six do, the style and every reference kept through the run, a reopening and typing; D9 (a) decided the same day (Jason). Check 63 had run in Design Mode (sections 63.13 to 63.16: check 67, and check 63 again with it off): the bare form writes as Word's form, and D1, D2 (b), D3's tracked markup, D5 and D10 (Word's five-space filler) were decided as Word and implemented the same day (section 63.17). Implemented 2026-10-25 (section 63.12, `020c039`), released in 0.6.0: every text write into a control showing its placeholder as Word's, by form; a whole control under a Replace or delete taken, in Word's tracked markup; placeholders written in Word's form, `placeholderText` reading the glossary entry, and the glossary written on save. Through the Word shim every write of checks 63, 64 and 66 is Word's, and of 65 all but 65b's case 9; a tracked `insertParagraph('After')`'s mark, found on the way, is issue #4. Sections 53 to 63 **released in 0.6.0** (2026-10-25). Section 64 (2026-10-26, the editor's findings on 0.6.0's search, found building its Finder across marks): a mark tracked as moved from reads as nothing in Word's default view, as its runs do; a cell's paragraph finds its cell through row-level controls nested to any depth (a repeating section's items), so a wildcard search no longer crosses a table's edge there; and a search's character boundaries are found a stretch between control characters at a time, so a search across a long body costs what its paragraphs' do. Implemented 2026-10-26, not released. Section 65 (2026-10-26, Jason, from docx4j CR-066's round 5: Word 365 keeps each integer attribute in 16 bits and reads a value past that wrapped, with no error): the measurement setters write a value only where Word stores its attribute as written, else `InvalidArgument` naming the range and what Word would read (Jason: "yes, Guard the setters"); check 71 written, what Office JS's own setters do there. Implemented 2026-10-26, not released. Check 71 run the same day (section 65.5): Word's own indent and cell-width setters wrap in 16 bits as its reader does, and its spacing, line, list and font setters refuse with `InvalidArgument` at Word's own limits, below storage; `setLevelIndents`' label indent, read as an absolute position until then, is relative, as Word's (fixed); D1 and D2 proposed. D1 and D2 decided 2026-10-27 as recommended (section 65.8); check 71b, Word's own limits, written and run the same day (section 65.9): spacing 0 to 1584 pt, a line 0.75 to 1584 pt under an auto rule, a list's text indent short of 1584 pt either way, a font 1 to 1638 pt after rounding, taken as the five setters' policy (D2 implemented), and `lineSpacing` writes Word's auto rule where it had written exact (fixed). Not released. Section 67 (2026-11-15 to 2026-11-18, the editor's request on Jason's word): Office JS `shadingColor` on `Table`, `TableRow` and `TableCell`, as Word 365 writes and reads it in the portfolio's Office JS round `core-ts-table-shading` (section 67.3); a clear, which Word fails on (WD-004), takes the cells' own shading away, and a tracked write records only what changes (E1 to E5, Jason). Implemented 2026-11-18 (section 67.4), not released.
 **Depends on:** CR-001 Phase A (parts and packages; implemented). The tree-level half depends on
 an objects-package CR (its CR-002, proposed below) because it needs only the object model.
 **Counterpart:** docx4j `MainDocumentPart.addParagraphOfText` / `addStyledParagraphOfText` /
@@ -7854,3 +7854,299 @@ Implemented at Jason's "commit, then Fix the table id gap". Word check 79 showed
 **Check 80, run 2026-11-06, one run each, confirms it.** On this package's own output Word kept every id at open: 21 of 21 paragraphs and 3 of 3 rows with rows added, the same with a table, 18 and 1 with columns, 28 and 5 with all three, and those 28 and 5 through a save. The control, the same file with one new row's id taken off, kept 0 of 28 and 0 of 4. So the row's id is what decides it, on real output.
 
 The save holds one paragraph more: `Body.insertTable` at `End` leaves a table last in the body, and Word adds the empty paragraph it wants there, with an id of its own. That's Word's, and the ids around it stand.
+
+## 67. `shadingColor` on `TableRow`, and on `TableCell` and `Table` (proposed 2026-11-15)
+
+The editor's request, made on Jason's word to it (2026-11-15: "ask core-ts for a TableRow.shadingColor setter").
+- **Where it comes from.** The editor's Row shading (editor `cc362de`, ED-005 section 12.128) is a ribbon menu over its command `row.shading`.
+- **Why it needs an engine form.** Without one the command has no Office JS line, so the editor's console and its agent can't shade a row as the ribbon does.
+- **What the editor does once this is released:**
+  - It adds the command's api line, `selection.paragraphs[0].parentTableCell.parentRow.shadingColor = "#FFFF00"`.
+  - Its `api.test.mts` then holds the command and this setter to the same export, with tracking off and on.
+
+**What Office JS has.**
+- `TableRow.shadingColor`, `TableCell.shadingColor` and `Table.shadingColor`, each read and written, all WordApi 1.3.
+- Its documentation says only that a colour is given as `#RRGGBB` or by its name.
+- This package has no shading member on any of the three, and `test/office-js-subset.ts` lists none.
+
+**What the editor writes now.** It asks the setter to agree with this, or to say where Word differs:
+- **Form.** Each `w:tc` of the row gets its own `w:tcPr/w:shd`, as `w:val="clear" w:color="auto" w:fill="RRGGBB"`.
+  - The rest of the `w:tcPr` is kept.
+  - Any `w:themeFill`, `w:themeFillTint` and `w:themeFillShade` go with the colour they named.
+- **Values.** `#RRGGBB` or six bare hex digits, written in upper case.
+- **No colour.** Its No colour (`null`) takes the cell's own `w:shd` away, so a table style's shading shows again.
+- **Merges.** A vertically merged cell is one cell.
+  - Shading the restart cell writes the same `w:shd` on every continuation.
+  - Shading a row that a merge reaches from above shades the whole merged cell.
+- **Tracking.** The command is untracked. Word would record a `w:tcPrChange`, which the editor can only list as Word's.
+
+**What isn't known.** Word has to answer all of these.
+- **Q1, the form.**
+  - What Word's `TableRow.shadingColor` writes: each cell's `w:tcPr/w:shd`, with which attributes; or the row's `w:tblPrEx`; or something else.
+  - The same for `TableCell`, and for `Table`: the table's `w:tblPr/w:shd`, or each cell's.
+- **Q2, the values.**
+  - Which colour names Word takes, and what it writes for one.
+  - What it does with a bare `FFFF00` and with lower case.
+  - What it does with a value it doesn't know: `InvalidArgument`, or nothing.
+- **Q3, clearing.**
+  - What `""` writes: no element, `w:fill="auto"`, `w:val="nil"`, or white.
+  - Whether `null` is refused.
+  - The editor's `row-shading` round (`packages/editor-model/test/fixtures/row-shading/`, staged with the portfolio) answers what Word draws for each such form under a table style. It doesn't answer which form Word's own setter writes.
+- **Q4, merges.**
+  - Whether a row's setter touches only the row's own `w:tc` (for a continuation, the continuation) or the whole merged cell.
+  - Which `w:tc` its getter reads.
+- **Q5, tracking.**
+  - Whether the setter under tracking records a `w:tcPrChange`, and for `Table` a `w:tblPrChange`.
+  - Section 35 already lists and resolves both, so a tracked setter would only need to write one.
+- **Q6, the getter.** What it reads:
+  - **for a row whose cells differ:** `""`, the first cell's colour, or something else;
+  - **for a row with no shading of its own, under a table style that shades it:** `""`, or the style's colour. The style's colour needs the style's `w:tcPr` resolved through its conditions, which `PropertyResolver` doesn't do today: CR-007 resolves only paragraphs and runs.
+  - **for a theme fill:** the colour Word draws, as `Font.color` reads one since CR-008 phase 2, or the stored `w:fill`.
+
+**The measurement.**
+- **How:** an Office JS round through the portfolio's Word bridge, with the `check` verb, as `insertooxml-join`'s was.
+- **The template:** unstyled, styled, banded and merged tables.
+- **The checks:**
+  - One check per question: each setter given `#FFFF00`, `FFFF00`, `#ffff00`, `yellow`, `Red`, an unknown name, `""` and `null`.
+  - The getter read before and after each set, then the file saved.
+  - The same again with tracking on.
+- **What it gives:** Word's saves and the getters' JSON become the oracle under `test/`, as check 52's and the join round's are.
+
+**The build after it.**
+- **The members:** `shadingColor` on `TableRow`, `TableCell` and `Table`, in `Table.mts`, writing what Word writes and reading what Word reads.
+- **The subset:** `test/office-js-subset.ts` and `Word.supported` gain the three.
+- **The tests:**
+  - Each setter's save held to Word's, through the Word shim too, with tracking off and on.
+  - A mutant for each answer the round gives.
+- **Where Word's answer departs from the editor's:** recorded here, for the editor.
+
+**For Jason.**
+- **D1:** whether to do `TableCell` and `Table` along with `TableRow`.
+  - The editor asked only for the row. The other two are the same property a level down and a level up, and the round measures them for little more.
+  - Recommended: all three.
+  - **Decided 2026-11-17 (Jason): all three** ("yes, shading on cells and tables as well as rows").
+- **D2:** whether to run the round before building, or build the editor's form now and correct it afterwards.
+  - Recommended: the round first.
+  - **2026-11-17 (Jason):** "ask the portfolio agent whether we can use word bridge for this". Asked the same day.
+  - **The portfolio's answer, the same day** (from the bridge's `word-bridge/docs/phase-3.md` sections 8 and 10):
+    - **Yes, with a limit.** The bridge is on and free, and a `check` round can run once Jason gives his word to run it. A check round carries code, so it needs his word and the VM's go.
+    - **A `check` job doesn't save.** Word runs the page on a temporary copy and closes it unsaved. So the round gets no `.word.docx`, only `result.json` and what the script writes to `#out`.
+      - So the XML comes from the script: `getOoxml()` of each table, row or cell range, as the join round read the body.
+      - That is Word's Flat OPC serialisation of the range, not its saved `document.xml`. It may differ from a save in rsids and the like, and is recorded as such.
+      - A check that saves would be a change to the bridge's code, and Jason's call.
+      - **Later the same day, Jason's call** ("yes, send the spec"): the portfolio asked the VM session (to-vm 357) for a check job that saves.
+        - A check job takes an optional `"formats": ["docx"]` (or `["docx", "pdf"]`).
+        - After the script's answer, Word saves the copy. The bridge strips the pane's parts and token, records what it stripped, refuses the file if the token survives, and returns `<input>.word.docx` beside `check-result.json`.
+        - The portfolio will say when it's installed, and its version.
+        - The portfolio's advice, taken here: wait for it, since Word's saved XML is the point of the round.
+    - **Tracking.** A script may set `document.changeTrackingMode` itself, once in each job, since each job is a fresh open. Revisions take the VM's Word user name as author.
+    - **The rules for a script:**
+      - It writes `#out` once and answers within the timeout.
+      - It uses no `fetch`, XMLHttpRequest, `import`, WebSocket, `location`, navigation or storage.
+      - Each check file is at most 1 MB.
+      - The template is purpose-built and has no web-extension parts.
+    - **Who builds it.** This package writes the template, a build script, `check.html` and the check scripts, as for the join round (`test/fragments/ij/`), and stages them under `bridge/staging/<set>/` with order and sha256 files. The portfolio then:
+      - verifies the hashes;
+      - scans the scripts for the forbidden calls and syntax-checks them in headless Chrome;
+      - scans the template;
+      - adds the meta and a control pair;
+      - passes the set to the VM for its check and go.
+
+### 67.1 The editor's `row-shading` round (2026-11-15)
+
+**The round.**
+- Word 365 16.0.20326.20318, bridge `22479f7`; every job silent, with no repairs.
+- The files, Word's saves and its PDFs are in the editor's `packages/editor-model/test/fixtures/row-shading/` (its README's Run 1).
+- Each file was opened and saved; no Office JS ran. So it answers what Word draws and keeps for each form, not what Word's setter writes.
+- Read here from Word's saves and PDFs, not only from the editor's report.
+
+**Under a table style that shades the cell** (the style's own `w:tcPr`, or `band1Horz` with banding on), in orange:
+
+| The cell's own `w:shd` | Drawn | Word's save |
+|---|---|---|
+| none | the style's orange | none |
+| `w:val="clear" w:color="auto" w:fill="auto"` | white: no colour, hiding the style's or the band's | kept |
+| `w:val="nil"` | the style's orange | **dropped** |
+| `w:fill="FFFFFF"`, `"FFFF00"` (with `clear`, `auto`) | white, yellow | kept |
+
+So "no colour" can be written two ways, and they draw differently under a style:
+- `w:val="nil"`, or no element, lets the style's colour show.
+- `clear`/`auto`/`auto` hides it.
+
+**A vertical merge.** Word draws the merged cell from its restart `w:tc` alone:
+- restart yellow, continuation none: yellow down to the foot;
+- restart none, continuation yellow: no yellow anywhere;
+- both yellow, as the editor writes a merge: yellow.
+
+**The editor's own save** (`shd3`) opens silently and draws as the editor draws it, and Word's save keeps every value.
+
+**What this settles.**
+- **Q3, half answered.** Which of the two forms Word's `shadingColor = ""` writes is still unknown, and it matters: one shows the style, the other hides it. The editor's No colour removes the element, the `nil` meaning.
+- **Q4, narrowed.**
+  - A setter that writes only a continuation's `w:tc` changes nothing Word draws.
+  - Still unknown: whether Word's `TableRow.shadingColor`, on a row a merge reaches from above, writes the restart cell in the row above.
+  - A getter reading that row's own `w:tc` would read what Word doesn't draw.
+- **The Office JS round still decides the rest.** The setter's form (Q1), values (Q2), the `""` form, merges, tracking (Q5) and the getter (Q6).
+
+### 67.2 The round staged: `core-ts-table-shading` (2026-11-17)
+
+Jason, the same day: "yes", to "Shall I build and stage the round?".
+
+**How it's built.** `test/table-shading/build.mjs` builds it; a rebuild is byte for byte.
+- **The template:** `ts-template.docx`.
+  - Its base is the editor's `shd1-style-forms-word365.docx`, Word 365's own save from the `row-shading` round (mode 15, the styles `ShadedTable` and `BandedTable`, both orange).
+  - Only `document.xml` is replaced, by ten labelled tables. Every other part is as Word wrote it.
+
+| Table | What it holds |
+|---|---|
+| T1 | plain, four rows, no shading |
+| T2 | `ShadedTable`; rows 1 and 2 their own yellow |
+| T3 | `BandedTable`, odd rows banded; row 1 its own yellow |
+| T4 | plain; column 2 merged down rows 1 and 2 |
+| T5 | the same, the restart yellow, the continuation none |
+| T6 | row 1 yellow and blue; row 2 `w:themeFill="accent1"` over a stored `FF0000` (the theme's accent1 is `156082`); row 3 `fill auto` and none |
+| T7, T10 | the table's own `w:tblPr/w:shd` yellow; row 2 cell 2 its own blue |
+| T8 | plain, for the table setter |
+| T9 | `ShadedTable`; row 1 cell 1 its own yellow |
+
+**The jobs.** Nine `check` jobs, each a fresh open of the template, `formats: ["docx"]` so Word saves the copy after the script's answer.
+
+| Job | What it measures | Question |
+|---|---|---|
+| `ts01-gets` | every getter, nothing set | Q6 |
+| `ts02-row-hex` | `#FFFF00`, `FFFF00`, `#00b0f0`, `#123456`, and a theme-filled row | Q1, Q2 |
+| `ts03-row-names` | `yellow`, `Red`, `lightgreen`, `nonsense` | Q2 |
+| `ts04-row-clear` | `""` on styled, banded, plain and mixed rows, and `null` | Q3 |
+| `ts05-row-merged-continuation` | the row a merge reaches from above, set; and cleared under a yellow restart | Q4 |
+| `ts06-row-merged-restart` | the row the merge starts in | Q4 |
+| `ts07-cell` | `TableCell`: hex, a name, `""`, a merge's continuation, a theme fill | Q1 to Q4 |
+| `ts08-table` | `Table`: plain, styled, `""` and blue over the table's own shading, and over mixed cells | Q1, Q3 |
+| `ts09-tracked` | the setters with change tracking on | Q5 |
+
+**What each job reports.**
+- Every getter, before and after, each in a sync of its own.
+- Each set's error or read-back.
+- Each table's XML as `getOoxml()` serialises the body.
+
+**How it was checked.** Each script's plumbing ran through this package's Word shim, which has no `shadingColor` yet, so only the error paths ran.
+
+**Where it is.** Staged as `bridge/staging/core-ts-table-shading/` with its order and SHA-256 files, for the portfolio to verify and pair with a control. It waits for the saving `check` job (to-vm 357).
+
+### 67.3 Word's answers (2026-11-17)
+
+**The runs.** Bridge `958f35f` (a `check` job that saves, installed that evening on Jason's word), Word 365 16.0.20326.20318. Five sets ran:
+- `core-ts-table-shading`: ts01 to ts03 ran; ts04 stopped.
+- `core-ts-table-shading-r`: ts04 again, as it was.
+- `core-ts-table-shading-2a` and `-3`: the split.
+- the controls, all silent.
+
+What's kept: each job's `result.json`, each answered job's `check-result.json` and Word's save, `ts-template.word.docx`, in `test/table-shading/`.
+
+**Every clear raises a false dialog: WD-004.** Word showed "There is not enough memory or disk space to update the display." and never answered:
+- on all 13 clears: `""` on a row (styled, banded, plain, styled with none of its own, mixed, merged), on a cell (styled, banded) and on a table, and under tracking, and `null` on a row;
+- on no job that set only colours.
+
+The VM's resources were ruled out (VM 309), and Jason ruled it a Word defect: WD-004 in the portfolio's `docs/word_defects.md`, with this round's template and ts04c's script as its reproducer. So **Office JS has no working way to clear a shading in this build.**
+
+**Q1, the form.** Every write is `w:shd w:val="clear" w:color="RRGGBB" w:fill="RRGGBB"`. The pattern colour is the fill's colour, not `auto` as the editor writes. Any `w:themeFill` (or tint or shade) in the cell is dropped.
+- **TableRow:** each `w:tc` of the row (ts02, ts03).
+- **TableCell:** that `w:tc` (ts07).
+- **Table:** the table's `w:tblPr/w:shd`, **and** every cell's own `w:shd`, in the same form (ts08). It replaces whatever each cell held: T6's yellow, blue and theme fills, T9's own yellow, T10's own blue.
+
+**Q2, the values.**
+- `#FFFF00`, a bare `FFFF00` and lower case are all taken, and written and read back in upper case.
+- Names are CSS's: `yellow` → `FFFF00`, `Red` → `FF0000`, `lightgreen` → `90EE90`.
+- An unknown name throws `InvalidArgument`, `errorLocation` `TableRow.shadingColor` (ts03).
+
+**Q3, clearing.** WD-004, above. Word gives nothing to follow.
+
+**Q4, merges.**
+- **On the row a merge reaches from above (ts05),** the row setter writes every `w:tc` in that row, the continuation's included, and not the restart in the row above. Word draws a merged cell from its restart (section 67.1), so on that row the merged cell's colour doesn't change.
+- **On the row a merge starts in (ts06),** it writes that row's `w:tc`s, the restart included, and no continuation below. So the whole merged cell takes the colour.
+- **`Table.getCell` at a continuation's place** (T4, [1,1]) throws `ItemNotFound` (ts07).
+- **The row's cells:** a merge's continuation isn't one of them. Row 2 of T4 lists one cell (ts01).
+
+**Q5, tracking (ts09).** Each `w:tc` written gets a `w:tcPrChange` holding its old `w:tcPr`; T6's old theme fill is kept there whole. Word also writes change records that record no change:
+- **A grid change:** a `w:tblGridChange` holding the unchanged grid, in each table it touched (T1, T4, T6, T8).
+- **A table-properties change** holding the unchanged `w:tblPr`:
+  - for the table setter (T8), with the new `w:shd` beside it;
+  - in T1, where a row and a cell were set.
+- **An empty row change:** an empty `w:tblPrEx` with a `w:tblPrExChange`, on a row the row setter wrote (T4 row 2, T6 row 2), though not on T1's.
+- **A neighbouring cell:** a `w:tcPrChange` holding the unchanged `w:tcPr` on the cell beside the one the cell setter wrote (T1 row 4 cell 1).
+
+These are section 35's records, which this package already lists as one change and resolves.
+
+**Q6, the getters (ts01, and each job's `after`).**
+- **Format:** `#RRGGBB`, in upper case.
+- **No shading:** `""` where nothing shades the cell.
+- **Mixed:** `null` for a row or a table whose cells differ.
+- **A table style's shading is read:** `ShadedTable`'s rows read `#FFC000`, and so do `BandedTable`'s banded rows. Its unbanded rows read `""`.
+- **A theme fill is read as Word draws it:** `#156082`, accent1, where the stored fill says `FF0000`. Word's save then rewrites the stored fill to `156082`.
+- **A table's own `w:tblPr/w:shd` isn't read by its cells:** T7's and T10's unshaded cells read `""`. Their table reads `null`, because one cell is blue.
+- **After a set,** each getter reads the colour set.
+
+**Not measured.** `null` on a cell or a table; what pressing OK on WD-004's dialog does; Word's own No Color button; another build of Word.
+
+**For Jason, before the build.**
+- **E1, clearing (`""` and `null`).** Word fails (WD-004), so there's nothing to follow. The options:
+  - (a) Refuse with `InvalidArgument`.
+  - (b) Take each cell's own `w:shd` away, so a table style's shading shows again, as the editor's No colour does. For a table, take the table's own as well.
+  - (c) Write `w:fill="auto"`, which hides a style's shading (section 67.1).
+
+  Recommended: (b), recorded as a departure while WD-004 stands, since it's what the editor writes and what "no colour" means where nothing else shades the cell.
+- **E2, the form.** Follow Word: `w:color` equal to `w:fill`, theme attributes dropped, the table setter writing `w:tblPr/w:shd` and every cell. Recommended.
+- **E3, merges.** Follow Word: a row setter writes its own row's `w:tc`s, a continuation's included, and never a restart in another row. `getCell` at a continuation's place throws `ItemNotFound`. Recommended, since the shim is held to Office JS.
+  - This differs from the editor's command, which shades the whole merge. The editor has said it will follow Word.
+- **E4, tracking.** Recommended: write a `w:tcPrChange` for each cell written, and for the table setter a `w:tblPrChange`, both of which record what changed. Leave out the records that record no change: the unchanged grid, the empty `w:tblPrEx`, the unchanged neighbour. That would be recorded as a departure.
+  - The other choice is to copy Word's whole set.
+  - Either way, Accept All and Reject All give Word's result.
+- **E5, the getters.** Follow Word: read a table style's shading through its conditions, and a theme fill as drawn.
+  - The first is new work. `PropertyResolver` resolves a table style's conditions for paragraphs and runs (CR-007), not for a cell's `w:tcPr`.
+  - Recommended.
+
+**Decided 2026-11-18 (Jason): E1 to E5 as recommended** ("decisions as recommended").
+- **E1:** a clear takes the cells' own `w:shd` away (for a table, its own too). This is a departure while WD-004 stands.
+- **E2, E3 and E5:** Word's form, merge rule and getters.
+- **E4:** only the tracked records that record a change, a departure.
+
+### 67.4 Implemented (2026-11-18)
+
+**The members.** `shadingColor` on `Table`, `TableRow` and `TableCell`, read and written, in `Table.mts` over `tableShading.mts`. The Office JS subset and `Word.supported` gain the three.
+
+**The setters** write what Word wrote in section 67.3.
+- **Values.**
+  - `#RRGGBB`, or six bare hex digits, in either case, written in upper case.
+  - A CSS name in any case: the objects package's 140 that Word reads in a colour value, and CSS's seven `grey` spellings, as the objects package's `highlightNameForColor` takes them. Three names were measured; the rest of the table is CSS's.
+  - Anything else is `InvalidArgument`, before anything changes.
+- **The form.** Each cell written gets `w:shd w:val="clear" w:color` = `w:fill` = the colour, the theme attributes gone.
+  - The row setter writes each `w:tc` of the row, in every branch of a kept `mc:AlternateContent`, a merge's continuation among them.
+  - The table setter writes `w:tblPr/w:shd` and every cell of every row.
+- **Clearing (E1).** `""` or `null` takes the cells' own `w:shd` away, and for the table its own too.
+- **Tracked (E4).** `ChangeTracker.recordTcPrChange` and `recordTblPrChange` record the old properties once. `settleTcPrChange` and `settleTblPrChange` take the record away where the properties are back to what it recorded, as a run's are (check 24). A write that leaves a shading as it was records nothing.
+
+**The getters** read what Word reads (E5).
+- **A cell:** its own `w:shd` (`w:val="nil"` counting as none), else its table style's: the style's own `w:tcPr`, then each conditional format the cell is under, in the order they apply.
+  - The conditions come from `TableContext.forCell`, CR-007's, so `w:tblLook` and the band sizes gate them as they gate a paragraph's.
+  - A theme fill reads as drawn, through `resolveFill`.
+  - The table's own `w:tblPr/w:shd` is never read.
+- **A row or a table:** one colour where its cells agree, `''` for none, `null` where they differ, a merge's continuation left out.
+  - **Inferred, not measured:** leaving the continuation out follows Word's count of the row's cells. In every case Word ran, a continuation agreed with its row.
+  - **Typed as Office JS types it:** `string`, though the getter returns `null` where cells differ, as `Font` does (section 59.1).
+
+**`Table.getCell`** throws `ItemNotFound` (a new class in `generalException.mts`, with Office JS's `code`) at the place of a merge's continuation, as Word does.
+
+**A known difference: `cells` and `cellCount` still count a continuation's `w:tc`.** Office JS leaves it out, so its row reads one cell where this package's reads two (T4's and T5's second rows).
+- Leaving it out here would shift the index of every later cell in that row, so the addresses `Body` gives cells (`body/4/1/1`) would change. The editor keeps those.
+- The difference is pinned in the test (`asOfficeCounts`), and is left for a decision of its own if it's wanted.
+
+**The tests.** `test/table-shading.test.mjs`, 26 tests:
+- **The round's files:** under their manifest, with every clear's WD-004 dialog and every colour job's answer and save.
+- **Each answered job's own script, run through the shim on the template**, its getters held to Word's before and after, cell by cell, its sets to Word's outcomes (`ItemNotFound`, `InvalidArgument`).
+- **Each save held to Word's:**
+  - Each table's and cell's shading changes exactly where Word's did, and to what Word wrote.
+  - The comparison is against Word's own save of ts01, since Word's open and save normalise two shadings themselves, which a test pins: a `fill="auto"` with nothing to hide dropped, and a theme fill's stored value rewritten.
+- **The tracked job:** a `w:tcPrChange` or `w:tblPrChange` exactly where Word's record changes something, holding Word's old shading; none of Word's records of no change; Accept All keeping the colours and Reject All giving the template back.
+- **Each of the 13 clears (E1):** the target's own shading gone, the rest as it was, the getter then reading the style's colour, and the tracked clear's records.
+- **Units:** the values and refusals, `getCell` at a continuation, a theme fill as drawn, the table's own shading not read, a continuation's own shading not making its row mixed, the record kept once and settled.
+
+16 mutants were each caught, among them the editor's `w:color="auto"`, a continuation skipped, the cells or the table's own left by the table setter, the style, its conditions or the theme ignored, the table's own read, `getCell` returning a continuation, no record, theme attributes kept, a clear written as `fill="auto"`, names or bare hex refused, and no settle.

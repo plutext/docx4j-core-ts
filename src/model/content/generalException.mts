@@ -24,3 +24,15 @@ export class InvalidArgument extends Docx4JException {
     this.name = 'InvalidArgument';
   }
 }
+
+/**
+ * What Office JS throws for an item that isn't there (`ItemNotFound`): `Table.getCell` at the place of a vertical
+ * merge's continuation, which Office JS doesn't count among its row's cells (CR-002 section 67.3, ts07).
+ */
+export class ItemNotFound extends Docx4JException {
+  readonly code = 'ItemNotFound';
+  constructor(message: string) {
+    super(message);
+    this.name = 'ItemNotFound';
+  }
+}

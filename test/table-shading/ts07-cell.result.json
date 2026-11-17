@@ -1,0 +1,89 @@
+{
+ "word": "16.0.20326.20318",
+ "printer": "FX DocuPrint C2255 PCL 6",
+ "opened": "silent",
+ "dialogs": [],
+ "outputs": [
+  {
+   "name": "check-result.json",
+   "bytes": 27431,
+   "sha256": "f386679e788d9e9bf64df20a71c18c404d0fbafebd3203dec50412e86a52227d"
+  },
+  {
+   "name": "ts-template.word.docx",
+   "format": "docx",
+   "bytes": 12096,
+   "sha256": "557bef4261b44d6c375add5b397a262bb31b3c398e79aa64707dae1aeaf61f1c"
+  }
+ ],
+ "seconds": 6.0,
+ "timedOut": false,
+ "verb": "check",
+ "input": "ts-template.docx",
+ "opens": [
+  {
+   "format": "docx",
+   "opened": "silent",
+   "name": "ts-template.docx",
+   "readOnly": false,
+   "saved": true
+  }
+ ],
+ "saves": [
+  {
+   "kind": "save-done",
+   "format": "docx",
+   "alertsOff": false
+  }
+ ],
+ "options": {
+  "visible": true,
+  "automationSecurity": 3,
+  "displayAlerts": -1,
+  "displayAlertsAtStart": 0,
+  "disableAutoMacros": true,
+  "build": "16.0.20326",
+  "kind": "options",
+  "at": 2.47
+ },
+ "killed": false,
+ "killedInStartup": false,
+ "exitSeconds": 2.3,
+ "workerExit": 0,
+ "check": {
+  "answered": true,
+  "reports": [
+   "{\"stage\":\"office-ready\",\"detail\":\"{\\\"host\\\":\\\"Word\\\",\\\"version\\\":\\\"16.0.20326.20318\\\",\\\"platform\\\":\\\"PC\\\"}\"}",
+   "{\"stage\":\"running\",\"detail\":null}",
+   "{\"stage\":\"answered\",\"detail\":null}"
+  ],
+  "refusedRequests": 0
+ },
+ "stripped": {
+  "parts": [
+   "word/webextensions/taskpanes.xml",
+   "word/webextensions/webextension1.xml",
+   "word/webextensions/_rels/taskpanes.xml.rels"
+  ],
+  "contentTypes": [
+   "/word/webextensions/taskpanes.xml",
+   "/word/webextensions/webextension1.xml"
+  ],
+  "relationships": [
+   {
+    "in": "_rels/.rels",
+    "id": "rId2",
+    "type": "http://schemas.microsoft.com/office/2011/relationships/webextensiontaskpanes",
+    "target": "word/webextensions/taskpanes.xml"
+   }
+  ]
+ },
+ "newDisabledItems": [],
+ "halted": false,
+ "problems": [],
+ "complete": true,
+ "installed": {
+  "version": "958f35f",
+  "installedAt": "2026-11-17T19:16:44"
+ }
+}

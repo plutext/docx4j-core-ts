@@ -151,6 +151,8 @@ namespace OfficeSubset {
     delete(): void;
     // CR-014 phase 1
     getRange(location?: 'Whole' | 'Start' | 'End' | 'After'): Range;
+    // CR-002 section 67
+    shadingColor: string;
   }
   export interface TableRow {
     readonly cellCount: number;
@@ -159,6 +161,8 @@ namespace OfficeSubset {
     readonly parentTable: Table;
     values: string[];
     isHeader: boolean;
+    // CR-002 section 67
+    shadingColor: string;
     insertRows(insertLocation: ParagraphLocation, rowCount: number, values?: string[][]): ArrayLike<TableRow>;
     delete(): void;
   }
@@ -172,6 +176,8 @@ namespace OfficeSubset {
     /** Points, as Office JS reports them (CR-002 open question 2). */
     width: number;
     columnWidth: number;
+    // CR-002 section 67
+    shadingColor: string;
   }
   export interface InlinePicture {
     altTextDescription: string;
