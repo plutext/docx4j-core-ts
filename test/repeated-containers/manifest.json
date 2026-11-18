@@ -1,0 +1,1311 @@
+{
+ "probe": "a child given more than once (WD REQ-322): the rounds rc-, rt-, sm-, ft-, nd-, op- and cr079-phase0 (c79-), each source beside Word 365's save and Save As text (CR-028 phase 2)",
+ "source": "docx4j-core-tests/src/test/resources/repeated/ at the docx4j 17.3.6 release (tag docx4j-17.3.6, 4afcf4be8), every file, copied unedited",
+ "word": "Word 365: <name>-word365.docx is Word's save of <name>.docx, <name>-word365.txt its Save As text; nd-10 to nd-14 Word refused, so have neither",
+ "files": [
+  {
+   "name": "c79-30-sdtcontent-run-word365.docx",
+   "sha1": "df10c5aeb7f369c9ccc0bd87ae4657a69def2784"
+  },
+  {
+   "name": "c79-30-sdtcontent-run-word365.txt",
+   "sha1": "ba55123e6a402a3596da98706feb6d271ad3dcbc"
+  },
+  {
+   "name": "c79-30-sdtcontent-run.docx",
+   "sha1": "310ea749a28bc4ff5da9534acb6089070ebbae63"
+  },
+  {
+   "name": "c79-31-sdtcontent-row-word365.docx",
+   "sha1": "044875316855bd35abce964c3e60c688e5480eff"
+  },
+  {
+   "name": "c79-31-sdtcontent-row-word365.txt",
+   "sha1": "f0d4d215db40a7452d152051b555ffcf43295bed"
+  },
+  {
+   "name": "c79-31-sdtcontent-row.docx",
+   "sha1": "32b8a91ab30eba0ed3b97846801294b185642e4f"
+  },
+  {
+   "name": "c79-32-sdtcontent-cell-word365.docx",
+   "sha1": "9ab599415df40110161875719672a7e9c596384a"
+  },
+  {
+   "name": "c79-32-sdtcontent-cell-word365.txt",
+   "sha1": "b95655d8eaea937083f8a21294d13c383839603d"
+  },
+  {
+   "name": "c79-32-sdtcontent-cell.docx",
+   "sha1": "2b37e2c409be2899c0f557ae8d2e8cc05c68d917"
+  },
+  {
+   "name": "c79-33-txbx-wps-word365.docx",
+   "sha1": "e22216640b66855e420a928aa8c36a02c554c926"
+  },
+  {
+   "name": "c79-33-txbx-wps-word365.txt",
+   "sha1": "ba8ab5a0280b953aa97435ff8946cbcbb2755a27"
+  },
+  {
+   "name": "c79-33-txbx-wps.docx",
+   "sha1": "325744b9c2f551dc328597d3a917bf82c83fe182"
+  },
+  {
+   "name": "c79-40-ppr-nested-rpr-word365.docx",
+   "sha1": "5abc675ff1cc0018a652501f72349a01b094d28c"
+  },
+  {
+   "name": "c79-40-ppr-nested-rpr-word365.txt",
+   "sha1": "0efacd009c4800a6644845a8e3d51c8b45c90ca0"
+  },
+  {
+   "name": "c79-40-ppr-nested-rpr.docx",
+   "sha1": "a78867f5332ac4abef8158f05822ba4ad6608cf7"
+  },
+  {
+   "name": "c79-41-ppr-numpr-word365.docx",
+   "sha1": "1defb1f97ec358dbe113da837d0a09508212601f"
+  },
+  {
+   "name": "c79-41-ppr-numpr-word365.txt",
+   "sha1": "6584f2a3543ab68e7573bd930bf8131b30a2ec0c"
+  },
+  {
+   "name": "c79-41-ppr-numpr.docx",
+   "sha1": "0c89c90e25eacb95c805abbe6475c35b0961953c"
+  },
+  {
+   "name": "c79-42-ppr-pprchange-word365.docx",
+   "sha1": "4fecbdef8672a242c76a7f60e13f6072b02d979b"
+  },
+  {
+   "name": "c79-42-ppr-pprchange-word365.txt",
+   "sha1": "0da1fe48ad8d3276579901c469dc2dc4587b1962"
+  },
+  {
+   "name": "c79-42-ppr-pprchange.docx",
+   "sha1": "95de4f0463b8b0f12779bacd267135e80cd77aa2"
+  },
+  {
+   "name": "ft-00-control-word365.docx",
+   "sha1": "bafc6ee1f3a905ba0ecf611dafb87e4117e3d194"
+  },
+  {
+   "name": "ft-00-control-word365.txt",
+   "sha1": "1d73a53bf6c2ea6d636a85f896db07b46bf1e77c"
+  },
+  {
+   "name": "ft-00-control.docx",
+   "sha1": "80c22010269749b3a85f2d51199820855829d7f0"
+  },
+  {
+   "name": "ft-01-footer-first-only-word365.docx",
+   "sha1": "9b8de35c9867a5fcf1adb84e9bd5f007aa5c24e7"
+  },
+  {
+   "name": "ft-01-footer-first-only-word365.txt",
+   "sha1": "594c85bb942ebd768554bf53b245dd88f30a74fe"
+  },
+  {
+   "name": "ft-01-footer-first-only.docx",
+   "sha1": "4c8977951404c9d706a55c0181f7db093598e2ed"
+  },
+  {
+   "name": "ft-02-footer-later-only-word365.docx",
+   "sha1": "4135a21c8fe73d7a50df4d3aca93821ae0614813"
+  },
+  {
+   "name": "ft-02-footer-later-only-word365.txt",
+   "sha1": "f3130f3f04b95d9e1ea1c524350d8e40e511ecfb"
+  },
+  {
+   "name": "ft-02-footer-later-only.docx",
+   "sha1": "e9dd0a5907204ea16520c86d534467a7896b7189"
+  },
+  {
+   "name": "ft-03-footer-both-word365.docx",
+   "sha1": "fbe5a11f47d69a1b02617517eec5990ed99de56e"
+  },
+  {
+   "name": "ft-03-footer-both-word365.txt",
+   "sha1": "594c85bb942ebd768554bf53b245dd88f30a74fe"
+  },
+  {
+   "name": "ft-03-footer-both.docx",
+   "sha1": "59315ba160c42cb61d56d19fc44955bb6c83531f"
+  },
+  {
+   "name": "ft-04-three-first-and-third-word365.docx",
+   "sha1": "6a306161c0bc4addd922b72f2dacec7b75147c81"
+  },
+  {
+   "name": "ft-04-three-first-and-third-word365.txt",
+   "sha1": "594c85bb942ebd768554bf53b245dd88f30a74fe"
+  },
+  {
+   "name": "ft-04-three-first-and-third.docx",
+   "sha1": "193330bd68505ca89a0704968383e84d0285ca1a"
+  },
+  {
+   "name": "ft-05-three-second-and-third-word365.docx",
+   "sha1": "14569c53c57ef45b12d3cf27a911c10ba76b4af3"
+  },
+  {
+   "name": "ft-05-three-second-and-third-word365.txt",
+   "sha1": "f3130f3f04b95d9e1ea1c524350d8e40e511ecfb"
+  },
+  {
+   "name": "ft-05-three-second-and-third.docx",
+   "sha1": "1c5822c161ab4edd92742e64a3ca0c5ce71463fc"
+  },
+  {
+   "name": "ft-06-first-both-later-header-word365.docx",
+   "sha1": "e516a2e06d940f588ce6164c2f26b59fdb9ea752"
+  },
+  {
+   "name": "ft-06-first-both-later-header-word365.txt",
+   "sha1": "1d73a53bf6c2ea6d636a85f896db07b46bf1e77c"
+  },
+  {
+   "name": "ft-06-first-both-later-header.docx",
+   "sha1": "7abfd469a3aa66e7b7e9916c8b03f3fb25042344"
+  },
+  {
+   "name": "ft-07-first-header-later-footer-word365.docx",
+   "sha1": "6afbc716f37afc4bbfbb8a6c899b7aa910e5eea7"
+  },
+  {
+   "name": "ft-07-first-header-later-footer-word365.txt",
+   "sha1": "5c0bc324fea80cb92ccf7947997d240005625a1a"
+  },
+  {
+   "name": "ft-07-first-header-later-footer.docx",
+   "sha1": "16fbc1cd4f40a2ad068472f562f4aaad9bd81f6f"
+  },
+  {
+   "name": "ft-08-footer-default-then-first-word365.docx",
+   "sha1": "122b73654fd43a0d83af42539aa65b98ce12f6a4"
+  },
+  {
+   "name": "ft-08-footer-default-then-first-word365.txt",
+   "sha1": "594c85bb942ebd768554bf53b245dd88f30a74fe"
+  },
+  {
+   "name": "ft-08-footer-default-then-first.docx",
+   "sha1": "40655ffb54dc8c9d26954d3d606af089477a512c"
+  },
+  {
+   "name": "ft-09-header-default-then-first-word365.docx",
+   "sha1": "b8b77320ad81e83129d6788f5b09050cdbd57f04"
+  },
+  {
+   "name": "ft-09-header-default-then-first-word365.txt",
+   "sha1": "5c0bc324fea80cb92ccf7947997d240005625a1a"
+  },
+  {
+   "name": "ft-09-header-default-then-first.docx",
+   "sha1": "529d6eff2c36c9ac08cbe2f89b11397cec596d0b"
+  },
+  {
+   "name": "ft-10-two-bodies-footers-word365.docx",
+   "sha1": "8eac8f12e0c9e0dc5490eec72e7bebdd579cd227"
+  },
+  {
+   "name": "ft-10-two-bodies-footers-word365.txt",
+   "sha1": "d628d20d2da27a5171d8e7395ad165bb4f7bbf7b"
+  },
+  {
+   "name": "ft-10-two-bodies-footers.docx",
+   "sha1": "5459ab55ed043692489a77fbaa4f4e2fda11cab6"
+  },
+  {
+   "name": "ft-11-two-bodies-headers-word365.docx",
+   "sha1": "81e329da5edc2b7626389e5ca5026892efc65a0f"
+  },
+  {
+   "name": "ft-11-two-bodies-headers-word365.txt",
+   "sha1": "e06b52d3539b1192e58914b5a9f12f28ddf39311"
+  },
+  {
+   "name": "ft-11-two-bodies-headers.docx",
+   "sha1": "8ff9697637fe1100116644b504ad9f9724048ecd"
+  },
+  {
+   "name": "nd-00-control-word365.docx",
+   "sha1": "9016d33b2747d76d03425d0a39f934818659f4dd"
+  },
+  {
+   "name": "nd-00-control-word365.txt",
+   "sha1": "f1245b98fae7332ad6eb60cbbf804d8aafdfe8c9"
+  },
+  {
+   "name": "nd-00-control.docx",
+   "sha1": "3931f43fdf9a2664ada554e139d6de702fe9020c"
+  },
+  {
+   "name": "nd-10-document-only-child.docx",
+   "sha1": "bf902fefae7479637f45f70e704e7f68c55e3934"
+  },
+  {
+   "name": "nd-11-document-after-body.docx",
+   "sha1": "075746cdcafea0f8f74e3d8fa4f56b4f546c9307"
+  },
+  {
+   "name": "nd-12-document-before-body.docx",
+   "sha1": "6e4227927b51151c6157a2565c5659f1afbf862b"
+  },
+  {
+   "name": "nd-13-document-in-body.docx",
+   "sha1": "d1e58f2d336bdc66a1069e43623aad283f94cb53"
+  },
+  {
+   "name": "nd-14-document-three-deep.docx",
+   "sha1": "55163b8b5d578a848a6f2a4cf4e915fe59552e90"
+  },
+  {
+   "name": "nd-20-body-only-child-word365.docx",
+   "sha1": "8e50502dd4d987e571269565907bd1b1c789f6a4"
+  },
+  {
+   "name": "nd-20-body-only-child-word365.txt",
+   "sha1": "83515b7de2e3f4023ae4cd770bc9f1b4505941db"
+  },
+  {
+   "name": "nd-20-body-only-child.docx",
+   "sha1": "d33d1a6da8b75918789dff4f6bdf3af5dd2bb260"
+  },
+  {
+   "name": "nd-21-body-middle-no-sectPr-word365.docx",
+   "sha1": "43b781ac8ed51dae142eeec94b26aeb61e0e9301"
+  },
+  {
+   "name": "nd-21-body-middle-no-sectPr-word365.txt",
+   "sha1": "1dced7a9be0689d6930afc2768ffd2be3ce25464"
+  },
+  {
+   "name": "nd-21-body-middle-no-sectPr.docx",
+   "sha1": "cd26c4f0c8dc63d6a678f41c428fc4e4d12c0227"
+  },
+  {
+   "name": "nd-22-body-middle-with-sectPr-word365.docx",
+   "sha1": "a9d2f22e08420b05739abbdc6d06d079925fbe7e"
+  },
+  {
+   "name": "nd-22-body-middle-with-sectPr-word365.txt",
+   "sha1": "1dced7a9be0689d6930afc2768ffd2be3ce25464"
+  },
+  {
+   "name": "nd-22-body-middle-with-sectPr.docx",
+   "sha1": "fb86782127896b72d4b0c8286788222ceb8d2e6f"
+  },
+  {
+   "name": "nd-23-body-last-with-sectPr-word365.docx",
+   "sha1": "738eebebd2520d710610d7bf128480ca4f0b18ef"
+  },
+  {
+   "name": "nd-23-body-last-with-sectPr-word365.txt",
+   "sha1": "68463a110b6652c8ef29d2c500b0ebfa9a1dbc7c"
+  },
+  {
+   "name": "nd-23-body-last-with-sectPr.docx",
+   "sha1": "b14a223215766c08f2eeb7b8bf599b9f82f43a35"
+  },
+  {
+   "name": "nd-24-body-three-deep-word365.docx",
+   "sha1": "0fec9deef930dbaf7a79c1f03558b0d93578aa92"
+  },
+  {
+   "name": "nd-24-body-three-deep-word365.txt",
+   "sha1": "71185f686dc6449cb4bda2e468f4674e6d16ac78"
+  },
+  {
+   "name": "nd-24-body-three-deep.docx",
+   "sha1": "a067e4976e19605f1d9fdd80054b960e77cfdcf2"
+  },
+  {
+   "name": "op-00-control-word365.docx",
+   "sha1": "d64bd98143f3689fb480c7c20446a82aeb683ac4"
+  },
+  {
+   "name": "op-00-control-word365.txt",
+   "sha1": "6d47ad97e951cf1efd48613658268a917bf1ee49"
+  },
+  {
+   "name": "op-00-control.docx",
+   "sha1": "2518d6492d2e71869f31b7d429ffb70d39d5d87d"
+  },
+  {
+   "name": "op-10-pgsz-in-one-sectpr-word365.docx",
+   "sha1": "4dab7444911d83982f5c4eee7860a9db7fab6668"
+  },
+  {
+   "name": "op-10-pgsz-in-one-sectpr-word365.txt",
+   "sha1": "d4b48daf8117891b217b85082bcda17da2a1deaf"
+  },
+  {
+   "name": "op-10-pgsz-in-one-sectpr.docx",
+   "sha1": "2efd1060b96ff0b8a5e9a2efc35d288b17996b21"
+  },
+  {
+   "name": "op-11-pgmar-in-one-sectpr-word365.docx",
+   "sha1": "320f8457fd785c90680ba03ae0a30633096c0e4e"
+  },
+  {
+   "name": "op-11-pgmar-in-one-sectpr-word365.txt",
+   "sha1": "e9da5a10a14d770645d3f13b6070cb5384bd02cd"
+  },
+  {
+   "name": "op-11-pgmar-in-one-sectpr.docx",
+   "sha1": "337d76c3adb049aa62d393fec0f1afc146813853"
+  },
+  {
+   "name": "op-12-cols-in-one-sectpr-word365.docx",
+   "sha1": "e9ab940e3ab635640eaa16499865dc8b48b5c36b"
+  },
+  {
+   "name": "op-12-cols-in-one-sectpr-word365.txt",
+   "sha1": "0560568191543596ced1b823aeca796a41b479d6"
+  },
+  {
+   "name": "op-12-cols-in-one-sectpr.docx",
+   "sha1": "0543183adfb41bcef16eccad52144df12915f152"
+  },
+  {
+   "name": "op-20-numpr-in-one-ppr-word365.docx",
+   "sha1": "734b25248ba64110772285bdfd8c7e494cc9cd74"
+  },
+  {
+   "name": "op-20-numpr-in-one-ppr-word365.txt",
+   "sha1": "e90675e2eeb8139298137a6da06c819562657a91"
+  },
+  {
+   "name": "op-20-numpr-in-one-ppr.docx",
+   "sha1": "f830b8fb200a7830b7873ef1ec130db1ec620c88"
+  },
+  {
+   "name": "op-21-rpr-in-one-ppr-word365.docx",
+   "sha1": "b4a88f8012c2c805a7df3e579c529957987ef0e7"
+  },
+  {
+   "name": "op-21-rpr-in-one-ppr-word365.txt",
+   "sha1": "ff49e7ea7ebcd51018d57a77e55404718fad7c21"
+  },
+  {
+   "name": "op-21-rpr-in-one-ppr.docx",
+   "sha1": "bad0cdd6020680c19b31727cf5fd89c35f29869a"
+  },
+  {
+   "name": "rc-00-control-word365.docx",
+   "sha1": "e0359cea944c4769e747105b5a4903d5acb10de0"
+  },
+  {
+   "name": "rc-00-control-word365.txt",
+   "sha1": "3d7dea89c55788b628cafff0466f05b51e2415b2"
+  },
+  {
+   "name": "rc-00-control.docx",
+   "sha1": "1c913f51b4c8888cbb2d85a08df3fe5a9fa72b81"
+  },
+  {
+   "name": "rc-01-control-sdt-word365.docx",
+   "sha1": "ec9b568e326df0315d85d2a41d6025306981b7b3"
+  },
+  {
+   "name": "rc-01-control-sdt-word365.txt",
+   "sha1": "007aadffd80d82eafe0a7ed8fe55ffa6410ccd9c"
+  },
+  {
+   "name": "rc-01-control-sdt.docx",
+   "sha1": "9400a1694a498bbad3da46e340228d8314d921e7"
+  },
+  {
+   "name": "rc-02-control-txbx-word365.docx",
+   "sha1": "d79215e8b3233210ac4f24ff71859d3b42df499d"
+  },
+  {
+   "name": "rc-02-control-txbx-word365.txt",
+   "sha1": "586fa57de64970668523e506d43f52a9f4368777"
+  },
+  {
+   "name": "rc-02-control-txbx.docx",
+   "sha1": "b61625086165b54b4e181e0004fc7e61e85ae60f"
+  },
+  {
+   "name": "rc-10-body-word365.docx",
+   "sha1": "d29d89f63481952f79b37e70ad32fc0bb6a43584"
+  },
+  {
+   "name": "rc-10-body-word365.txt",
+   "sha1": "030f59c3cbe838c69bddf6733336b06844d2867d"
+  },
+  {
+   "name": "rc-10-body.docx",
+   "sha1": "6a098f6f14f12f0498019389c2205306d89af50c"
+  },
+  {
+   "name": "rc-11-sdtContent-word365.docx",
+   "sha1": "4166e4935615d39458e16fc520dc1ebcc3657f4b"
+  },
+  {
+   "name": "rc-11-sdtContent-word365.txt",
+   "sha1": "10243609ad77e76f6fc75613bcaab1a90acea104"
+  },
+  {
+   "name": "rc-11-sdtContent.docx",
+   "sha1": "7f8792c73a292825232b0fb129e641239dd1f6f1"
+  },
+  {
+   "name": "rc-12-txbxContent-word365.docx",
+   "sha1": "27611e0176f4a9c63beb52976430864b86b5a5e7"
+  },
+  {
+   "name": "rc-12-txbxContent-word365.txt",
+   "sha1": "e8562d7f02e462871fe49afa9a97f49adabef7f0"
+  },
+  {
+   "name": "rc-12-txbxContent.docx",
+   "sha1": "86f61f78191cc94283049d803c745bc0296a911a"
+  },
+  {
+   "name": "rc-20-pPr-values-word365.docx",
+   "sha1": "c3f3b0ac87b2635664e36325599bfdc02f629055"
+  },
+  {
+   "name": "rc-20-pPr-values-word365.txt",
+   "sha1": "9f65a9bdb7279abd3ee7cc7915f60c4697fccc1f"
+  },
+  {
+   "name": "rc-20-pPr-values.docx",
+   "sha1": "a88f7aac02ea40533d2ffc23821e8bbffc21d24e"
+  },
+  {
+   "name": "rc-21-pPr-merge-word365.docx",
+   "sha1": "88fae160275aac3b31efd34a5055517b1db336c3"
+  },
+  {
+   "name": "rc-21-pPr-merge-word365.txt",
+   "sha1": "5c1076afbf9ec88f9d5db2e003318ffb0da555a5"
+  },
+  {
+   "name": "rc-21-pPr-merge.docx",
+   "sha1": "1aa77f411e3f52806a9398a57a1bde69d49c1a34"
+  },
+  {
+   "name": "rc-22-rPr-values-word365.docx",
+   "sha1": "8ed03a9196029d7fa24ba9ea278859051a95d437"
+  },
+  {
+   "name": "rc-22-rPr-values-word365.txt",
+   "sha1": "fa59e70a3e3580f22d6ad8a89fd1d8606bfbdc3c"
+  },
+  {
+   "name": "rc-22-rPr-values.docx",
+   "sha1": "6c1a86f0f81f6d00256b63bc2663e5ce75fa99db"
+  },
+  {
+   "name": "rc-23-rPr-merge-word365.docx",
+   "sha1": "6b2e3e349823d706878c12f598f5d6564f8e54af"
+  },
+  {
+   "name": "rc-23-rPr-merge-word365.txt",
+   "sha1": "2724355c52dafa5724356400a3723ed5d090e2e2"
+  },
+  {
+   "name": "rc-23-rPr-merge.docx",
+   "sha1": "4087f9b402766791b9f2e20a03eca1fea1a8a780"
+  },
+  {
+   "name": "rc-30-jc-word365.docx",
+   "sha1": "38f1e05babfa0db9eb7871506f28d66f057265de"
+  },
+  {
+   "name": "rc-30-jc-word365.txt",
+   "sha1": "67ba127f4ae9219fa690c4b970fa598c2daa81d2"
+  },
+  {
+   "name": "rc-30-jc.docx",
+   "sha1": "ebe4ded2965652ee7356d49d6666cbb808ca0091"
+  },
+  {
+   "name": "rc-31-b-on-off-word365.docx",
+   "sha1": "cf1622bd26f5dec77d949c5bea80bb6d185f8c85"
+  },
+  {
+   "name": "rc-31-b-on-off-word365.txt",
+   "sha1": "7a4467491b430e3503c20e3e862b1119784e597a"
+  },
+  {
+   "name": "rc-31-b-on-off.docx",
+   "sha1": "af97b37b3d00d438351542df0134db08b279dd53"
+  },
+  {
+   "name": "rc-32-b-off-on-word365.docx",
+   "sha1": "510a37e239b7ef82b7369b82652f5e27a21df58a"
+  },
+  {
+   "name": "rc-32-b-off-on-word365.txt",
+   "sha1": "7e3d1cab9efd21c7b977be08349ba4ad8beaec16"
+  },
+  {
+   "name": "rc-32-b-off-on.docx",
+   "sha1": "2deff094cc3b44c3cf2a447176af2296a83681d0"
+  },
+  {
+   "name": "rc-33-sz-word365.docx",
+   "sha1": "b60e66469e81734c8fbb8111bccb314e84491470"
+  },
+  {
+   "name": "rc-33-sz-word365.txt",
+   "sha1": "7554d40d9d82112deaacf0d93c1685bd0c3b5595"
+  },
+  {
+   "name": "rc-33-sz.docx",
+   "sha1": "fc5ff3ce9dab2e244db2d0ce9594d4443b1d19a0"
+  },
+  {
+   "name": "rc-40-sectPr-word365.docx",
+   "sha1": "4590413eaab7691c1269c8b437e717091be895e1"
+  },
+  {
+   "name": "rc-40-sectPr-word365.txt",
+   "sha1": "3b078e31e701d34b805303bdd31e2c31279495f6"
+  },
+  {
+   "name": "rc-40-sectPr.docx",
+   "sha1": "e8e0240742a4c8c335d76822102a500b1a9fe74e"
+  },
+  {
+   "name": "rc-41-tblPr-word365.docx",
+   "sha1": "cca670db6ed4dc7200cc02305c186252020b5dd2"
+  },
+  {
+   "name": "rc-41-tblPr-word365.txt",
+   "sha1": "f0d727530f5f0f103f7d7670cc9909045769596c"
+  },
+  {
+   "name": "rc-41-tblPr.docx",
+   "sha1": "52a5401e8f094348b791fd3a837336b8edcbce09"
+  },
+  {
+   "name": "rt-00-control-word365.docx",
+   "sha1": "6478d7ecfe385453b4c28b36258a78775ba36c77"
+  },
+  {
+   "name": "rt-00-control-word365.txt",
+   "sha1": "f1245b98fae7332ad6eb60cbbf804d8aafdfe8c9"
+  },
+  {
+   "name": "rt-00-control.docx",
+   "sha1": "79d4640228e003769fa3f16a7c733103ea85ebef"
+  },
+  {
+   "name": "rt-10-body-word365.docx",
+   "sha1": "93334653d7a901e06d25a6b5e91eae55f8591db2"
+  },
+  {
+   "name": "rt-10-body-word365.txt",
+   "sha1": "5c43d17f530d5478fa59b09ebf292b2c721768f2"
+  },
+  {
+   "name": "rt-10-body.docx",
+   "sha1": "6f9ceb53ebcd4b14a17e4fc1137b19a6863202ed"
+  },
+  {
+   "name": "rt-11-sdtContent-word365.docx",
+   "sha1": "0682ea3d29fb6a43e6561f47b66e15594fe567d6"
+  },
+  {
+   "name": "rt-11-sdtContent-word365.txt",
+   "sha1": "d9541c35af4b805620b6fdc507c6691e6b0996ba"
+  },
+  {
+   "name": "rt-11-sdtContent.docx",
+   "sha1": "a07b21ca342ab79e5294a4be44c4ef431e7f53be"
+  },
+  {
+   "name": "rt-12-txbxContent-word365.docx",
+   "sha1": "594294f9a1781eaecadda207e368d4d016efcca3"
+  },
+  {
+   "name": "rt-12-txbxContent-word365.txt",
+   "sha1": "e8562d7f02e462871fe49afa9a97f49adabef7f0"
+  },
+  {
+   "name": "rt-12-txbxContent.docx",
+   "sha1": "3bd1aa26d8d02e8d193961ed805d4045c1c0661a"
+  },
+  {
+   "name": "rt-13-txbxContent-four-word365.docx",
+   "sha1": "3158f6109156c13ed3302568e661b273d4c20145"
+  },
+  {
+   "name": "rt-13-txbxContent-four-word365.txt",
+   "sha1": "522f2e7f76c80e0bfabb2add6041d1c5cbfb9894"
+  },
+  {
+   "name": "rt-13-txbxContent-four.docx",
+   "sha1": "ce0c949c14d30089dcdaaefa2c410e966c51ec8d"
+  },
+  {
+   "name": "rt-15-body-section-break-word365.docx",
+   "sha1": "23c251bd756748768b2b264df898828e0c879558"
+  },
+  {
+   "name": "rt-15-body-section-break-word365.txt",
+   "sha1": "ccf1728845fbeaf5a3ba916c21bdcddb8ef5991e"
+  },
+  {
+   "name": "rt-15-body-section-break.docx",
+   "sha1": "eecf31f7621b6ee095e8bf7557528ed72ae6e7e5"
+  },
+  {
+   "name": "rt-16-body-second-no-sectPr-word365.docx",
+   "sha1": "dffc173e1e43e002af9c854c71608bfb3d58659b"
+  },
+  {
+   "name": "rt-16-body-second-no-sectPr-word365.txt",
+   "sha1": "5c43d17f530d5478fa59b09ebf292b2c721768f2"
+  },
+  {
+   "name": "rt-16-body-second-no-sectPr.docx",
+   "sha1": "f8d6c76748fc00825da5ac9670b10eba9f90a81b"
+  },
+  {
+   "name": "rt-17-body-third-no-sectPr-word365.docx",
+   "sha1": "1db271f47befb7a84fd54bb9ba8d8085472bb555"
+  },
+  {
+   "name": "rt-17-body-third-no-sectPr-word365.txt",
+   "sha1": "5c43d17f530d5478fa59b09ebf292b2c721768f2"
+  },
+  {
+   "name": "rt-17-body-third-no-sectPr.docx",
+   "sha1": "2a4207d8cb9c189ed12cd69425d9a56e6305077e"
+  },
+  {
+   "name": "rt-20-pPr-values-word365.docx",
+   "sha1": "0c168969715c712afc80a547f58560bf79824dd9"
+  },
+  {
+   "name": "rt-20-pPr-values-word365.txt",
+   "sha1": "9f65a9bdb7279abd3ee7cc7915f60c4697fccc1f"
+  },
+  {
+   "name": "rt-20-pPr-values.docx",
+   "sha1": "0690688f721491bc880ec95ae738cf2810fb3930"
+  },
+  {
+   "name": "rt-21-pPr-merge-word365.docx",
+   "sha1": "dcc19b1a4d950ec79f162773cfd29c71e3743d5d"
+  },
+  {
+   "name": "rt-21-pPr-merge-word365.txt",
+   "sha1": "5c1076afbf9ec88f9d5db2e003318ffb0da555a5"
+  },
+  {
+   "name": "rt-21-pPr-merge.docx",
+   "sha1": "7df8f43e677efd3c33fcef0f96c7cde6866cf164"
+  },
+  {
+   "name": "rt-22-rPr-values-word365.docx",
+   "sha1": "5990856ea2b2b76aaa2e0c325b3f1024fe387fe7"
+  },
+  {
+   "name": "rt-22-rPr-values-word365.txt",
+   "sha1": "fa59e70a3e3580f22d6ad8a89fd1d8606bfbdc3c"
+  },
+  {
+   "name": "rt-22-rPr-values.docx",
+   "sha1": "8771453d6491c74d1fa931a5feae0689a67c146b"
+  },
+  {
+   "name": "rt-23-rPr-merge-word365.docx",
+   "sha1": "dafc672185ad41e699047b5730139d0105276f6b"
+  },
+  {
+   "name": "rt-23-rPr-merge-word365.txt",
+   "sha1": "2724355c52dafa5724356400a3723ed5d090e2e2"
+  },
+  {
+   "name": "rt-23-rPr-merge.docx",
+   "sha1": "1deeb9663ef55e64708371945d9a3481655df855"
+  },
+  {
+   "name": "rt-30-jc-word365.docx",
+   "sha1": "9c7a36ff2d3b1369bb9b8774cd868fa012170304"
+  },
+  {
+   "name": "rt-30-jc-word365.txt",
+   "sha1": "67ba127f4ae9219fa690c4b970fa598c2daa81d2"
+  },
+  {
+   "name": "rt-30-jc.docx",
+   "sha1": "5f7e52d55f27c2cf4b526275c533d6fbeb137acf"
+  },
+  {
+   "name": "rt-31-b-on-off-on-word365.docx",
+   "sha1": "6bd58287b9ea537c42593c9803358dc022bea98d"
+  },
+  {
+   "name": "rt-31-b-on-off-on-word365.txt",
+   "sha1": "ce855577d9d42e2d545b3ca698b381b4df66803b"
+  },
+  {
+   "name": "rt-31-b-on-off-on.docx",
+   "sha1": "fa62d5f286e63d3c8b93c76510ff15896e5ebad5"
+  },
+  {
+   "name": "rt-32-b-off-on-off-word365.docx",
+   "sha1": "206b59586f767ea54093123683e893a53e3038cc"
+  },
+  {
+   "name": "rt-32-b-off-on-off-word365.txt",
+   "sha1": "c91d36d13a1cd7b64d36dbc23b30662998907912"
+  },
+  {
+   "name": "rt-32-b-off-on-off.docx",
+   "sha1": "60c93c92ee2e827c205b9c9cadcc9ffec221538f"
+  },
+  {
+   "name": "rt-33-sz-word365.docx",
+   "sha1": "6a862ae6fa8a8ac7ea720a9fc6f953020c3d9447"
+  },
+  {
+   "name": "rt-33-sz-word365.txt",
+   "sha1": "7554d40d9d82112deaacf0d93c1685bd0c3b5595"
+  },
+  {
+   "name": "rt-33-sz.docx",
+   "sha1": "34057be75f5c00a8665e316e3b40e661a21c26b3"
+  },
+  {
+   "name": "rt-40-sectPr-word365.docx",
+   "sha1": "01bbacbdd6e4d24a36e9e817cc04fcf3a86b3aa9"
+  },
+  {
+   "name": "rt-40-sectPr-word365.txt",
+   "sha1": "3b078e31e701d34b805303bdd31e2c31279495f6"
+  },
+  {
+   "name": "rt-40-sectPr.docx",
+   "sha1": "e5864cd45f1709e819cdc958ccbe1798e24b4fb1"
+  },
+  {
+   "name": "rt-41-tblPr-word365.docx",
+   "sha1": "40ad5270f49b8ffe0bab32b9825698b34c4dd964"
+  },
+  {
+   "name": "rt-41-tblPr-word365.txt",
+   "sha1": "f0d727530f5f0f103f7d7670cc9909045769596c"
+  },
+  {
+   "name": "rt-41-tblPr.docx",
+   "sha1": "e4fb9ad566ff17c5374ff7911c227631eedc6461"
+  },
+  {
+   "name": "rt-50-mc-root-three-in-choice-word365.docx",
+   "sha1": "6e2ffb47e264473fc535ffd1c16a483b82f4afff"
+  },
+  {
+   "name": "rt-50-mc-root-three-in-choice-word365.txt",
+   "sha1": "0166098907d24c16251b868549d3453ce3fb9fd6"
+  },
+  {
+   "name": "rt-50-mc-root-three-in-choice.docx",
+   "sha1": "5b8971e1d82496b3a017a11123662aa90d9655f4"
+  },
+  {
+   "name": "rt-51-mc-root-three-in-fallback-word365.docx",
+   "sha1": "6dea2a89fba548a077b104ba3588e209be0507b1"
+  },
+  {
+   "name": "rt-51-mc-root-three-in-fallback-word365.txt",
+   "sha1": "0166098907d24c16251b868549d3453ce3fb9fd6"
+  },
+  {
+   "name": "rt-51-mc-root-three-in-fallback.docx",
+   "sha1": "5bb598f5fc30293c39c7e4c4a22e81b866e7d10d"
+  },
+  {
+   "name": "sm-00-control-word365.docx",
+   "sha1": "3b4f311e0eadb2af5bf7c536d7ffef32fe3db7aa"
+  },
+  {
+   "name": "sm-00-control-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-00-control.docx",
+   "sha1": "3a3f3a0feac080fd6895e569872cd55ea0e8f2cd"
+  },
+  {
+   "name": "sm-01-pgsz-orient-first-word365.docx",
+   "sha1": "9a6dee9acb279c494583cc80472663531b90b594"
+  },
+  {
+   "name": "sm-01-pgsz-orient-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-01-pgsz-orient-first.docx",
+   "sha1": "33d72bbd83998c19a3ca3c0fca39f5afcd0017f8"
+  },
+  {
+   "name": "sm-02-pgsz-orient-last-word365.docx",
+   "sha1": "0c1ccb67bb1e5b27132f978b26091acc51fc1525"
+  },
+  {
+   "name": "sm-02-pgsz-orient-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-02-pgsz-orient-last.docx",
+   "sha1": "85db93204d923a0c51d8b0d2e11e7f368c9a36a7"
+  },
+  {
+   "name": "sm-03-pgsz-orient-middle-word365.docx",
+   "sha1": "d67c948aac26d477e0f5f6bbefb30a11fe832308"
+  },
+  {
+   "name": "sm-03-pgsz-orient-middle-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-03-pgsz-orient-middle.docx",
+   "sha1": "2f923e25e1904da818a703e7073d839a8b920438"
+  },
+  {
+   "name": "sm-04-pgsz-code-first-word365.docx",
+   "sha1": "3ffa8d9fa218a948ee18674351bc7691831c3155"
+  },
+  {
+   "name": "sm-04-pgsz-code-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-04-pgsz-code-first.docx",
+   "sha1": "d6419924a7131a8050443d5725733fcf00b3b989"
+  },
+  {
+   "name": "sm-05-pgsz-orient-only-last-word365.docx",
+   "sha1": "0fab112d522c81da3a763f37c97d9ac0b4cdbdff"
+  },
+  {
+   "name": "sm-05-pgsz-orient-only-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-05-pgsz-orient-only-last.docx",
+   "sha1": "5b40babe0139c0405af79642c068180a224ecd01"
+  },
+  {
+   "name": "sm-06-pgsz-width-only-last-word365.docx",
+   "sha1": "f8e154e1febe303b9bd06979f4aeff7c24425ce7"
+  },
+  {
+   "name": "sm-06-pgsz-width-only-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-06-pgsz-width-only-last.docx",
+   "sha1": "b32fe7f84f7c86cec2b733bd58174497dd03fb5b"
+  },
+  {
+   "name": "sm-07-pgsz-portrait-last-word365.docx",
+   "sha1": "ccf085f0dc0fe898d8692aea56600eb999ba0c67"
+  },
+  {
+   "name": "sm-07-pgsz-portrait-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-07-pgsz-portrait-last.docx",
+   "sha1": "09d6559fb10ad69cbe1b2007a5d3e703550c9da2"
+  },
+  {
+   "name": "sm-10-pgmar-top-only-last-word365.docx",
+   "sha1": "53b4c6982d95768beb87284403cc3bcd24164e92"
+  },
+  {
+   "name": "sm-10-pgmar-top-only-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-10-pgmar-top-only-last.docx",
+   "sha1": "9a7dce049f47be48fc7b1f63dac5e36fd079b49c"
+  },
+  {
+   "name": "sm-11-pgmar-gutter-first-word365.docx",
+   "sha1": "c1bdaee506e42bfda57e1ae35ac22e4bdf43d5dc"
+  },
+  {
+   "name": "sm-11-pgmar-gutter-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-11-pgmar-gutter-first.docx",
+   "sha1": "7904cfa2e8071b1e826e5c6bbf72cb505228a04b"
+  },
+  {
+   "name": "sm-20-cols-first-word365.docx",
+   "sha1": "3486c5bbc82d2d37147550d31ef621c52d491912"
+  },
+  {
+   "name": "sm-20-cols-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-20-cols-first.docx",
+   "sha1": "4b2f94b403133a61b59dbafa0c89f37ec50a5dff"
+  },
+  {
+   "name": "sm-21-cols-attributes-word365.docx",
+   "sha1": "c6ff10de8d9263a1c2d65cc1a48ef5448898c8c3"
+  },
+  {
+   "name": "sm-21-cols-attributes-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-21-cols-attributes.docx",
+   "sha1": "48f0b999d319f4dd3feb09239dba2ee170a15ca8"
+  },
+  {
+   "name": "sm-22-titlepg-first-word365.docx",
+   "sha1": "506647f02100718db287ca3b9f99acfa98e1ff32"
+  },
+  {
+   "name": "sm-22-titlepg-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-22-titlepg-first.docx",
+   "sha1": "b77d1d9dcb2bf3cbc357e2c1a29698286a781212"
+  },
+  {
+   "name": "sm-23-pgborders-first-word365.docx",
+   "sha1": "6818eaa9ee8a8081ec13210429d7eb1ded203c71"
+  },
+  {
+   "name": "sm-23-pgborders-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-23-pgborders-first.docx",
+   "sha1": "9be1d7027850510dcb3650e985b07e57eeda34b9"
+  },
+  {
+   "name": "sm-24-lnnumtype-first-word365.docx",
+   "sha1": "b1fab4353a116fc9468e02f9101323886a0c9700"
+  },
+  {
+   "name": "sm-24-lnnumtype-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-24-lnnumtype-first.docx",
+   "sha1": "f026b46cb23b4ab90057fa1e6412c3be9c2a3589"
+  },
+  {
+   "name": "sm-25-pgnumtype-first-word365.docx",
+   "sha1": "3ba192c999ed1a94606d6d98954556c17029c3f9"
+  },
+  {
+   "name": "sm-25-pgnumtype-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-25-pgnumtype-first.docx",
+   "sha1": "9cd74b7c91159cc21b58ff41ba3458ceec43af72"
+  },
+  {
+   "name": "sm-26-valign-first-word365.docx",
+   "sha1": "9a6e5c92ec3ee5c1d44182e1e65df68c05e09fbd"
+  },
+  {
+   "name": "sm-26-valign-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-26-valign-first.docx",
+   "sha1": "010e3f0db698e89054fc3db3dfac75a384df41d2"
+  },
+  {
+   "name": "sm-27-type-first-word365.docx",
+   "sha1": "a646404c2637dd9a5527112f3b84653600cf3a34"
+  },
+  {
+   "name": "sm-27-type-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-27-type-first.docx",
+   "sha1": "d38cf8ae6c1d31ca153ec3b773add5ff0b1c5518"
+  },
+  {
+   "name": "sm-28-docgrid-first-word365.docx",
+   "sha1": "4529c432a6856c13d1345bf5ac8138c678b07314"
+  },
+  {
+   "name": "sm-28-docgrid-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-28-docgrid-first.docx",
+   "sha1": "2a49fd4f09af0710f7c0bf379e439015cfaaed22"
+  },
+  {
+   "name": "sm-29-bidi-first-word365.docx",
+   "sha1": "5afe4c47787b9d8f2e00d980c5f3b1344d289d95"
+  },
+  {
+   "name": "sm-29-bidi-first-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-29-bidi-first.docx",
+   "sha1": "4b118365aade712ff20ecf4dad87acc69a956b1e"
+  },
+  {
+   "name": "sm-30-pgsz-absent-last-word365.docx",
+   "sha1": "4ba740d10184da8f9490a258cdb9a4ff563aa7e6"
+  },
+  {
+   "name": "sm-30-pgsz-absent-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-30-pgsz-absent-last.docx",
+   "sha1": "4dcaf95630f7286268fe003049451b4dd35a7f8b"
+  },
+  {
+   "name": "sm-31-pgmar-absent-last-word365.docx",
+   "sha1": "26f230bb32056c818417176153ba682f9fb83e15"
+  },
+  {
+   "name": "sm-31-pgmar-absent-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-31-pgmar-absent-last.docx",
+   "sha1": "f1350bebb090e1ea5c0e26fd136c7f4287d78445"
+  },
+  {
+   "name": "sm-32-last-empty-word365.docx",
+   "sha1": "58e44f1f9fae1e40870abcbb20c8273f3f7875d5"
+  },
+  {
+   "name": "sm-32-last-empty-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-32-last-empty.docx",
+   "sha1": "37f068759d7f577df988048a454e82eeb3bef063"
+  },
+  {
+   "name": "sm-33-cols-last-word365.docx",
+   "sha1": "d17086dcb480df8099520f486fa58e849870839b"
+  },
+  {
+   "name": "sm-33-cols-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-33-cols-last.docx",
+   "sha1": "4c6ba45b9f9b59e4bbceac9f2fa87a43d9c9f8f1"
+  },
+  {
+   "name": "sm-40-header-first-word365.docx",
+   "sha1": "52eeba5e91048de912455a464a61bdcdd60bfd40"
+  },
+  {
+   "name": "sm-40-header-first-word365.txt",
+   "sha1": "74be0830d4c332a89698ba26136d821d17919352"
+  },
+  {
+   "name": "sm-40-header-first.docx",
+   "sha1": "d834c4b8bb6479a43a566dc759435b6db9b13860"
+  },
+  {
+   "name": "sm-41-header-last-word365.docx",
+   "sha1": "ec95342dcbf51cf8777e261b8b7060feaab24e14"
+  },
+  {
+   "name": "sm-41-header-last-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-41-header-last.docx",
+   "sha1": "8bf559b5ea954d568a4857cdf756f0d49c2b36a0"
+  },
+  {
+   "name": "sm-42-header-both-word365.docx",
+   "sha1": "9b56ba530500687a31afb4e720eeb3537fc112e9"
+  },
+  {
+   "name": "sm-42-header-both-word365.txt",
+   "sha1": "74be0830d4c332a89698ba26136d821d17919352"
+  },
+  {
+   "name": "sm-42-header-both.docx",
+   "sha1": "3045c00072e5f0c346ba8ba535b3e2abb582a658"
+  },
+  {
+   "name": "sm-50-bodies-cols-first-word365.docx",
+   "sha1": "aef6681c0a071a05458becbc6c47ae3403c772bc"
+  },
+  {
+   "name": "sm-50-bodies-cols-first-word365.txt",
+   "sha1": "0685b7fbe8a4b6365bf234dd1106915ac4d40029"
+  },
+  {
+   "name": "sm-50-bodies-cols-first.docx",
+   "sha1": "1f1a2143bb25bda7d2c4af8118d6012f218b0e6c"
+  },
+  {
+   "name": "sm-51-bodies-orient-first-word365.docx",
+   "sha1": "455a00d9735dd3d79c776cf8d767c9d6a71bd0b1"
+  },
+  {
+   "name": "sm-51-bodies-orient-first-word365.txt",
+   "sha1": "0685b7fbe8a4b6365bf234dd1106915ac4d40029"
+  },
+  {
+   "name": "sm-51-bodies-orient-first.docx",
+   "sha1": "b8b0d9065346352dc4e481cf0a0f5804b0480502"
+  },
+  {
+   "name": "sm-52-branch-orient-first-word365.docx",
+   "sha1": "ae2b64547aa5b21564d61862b9bf9e1b0f85bc5f"
+  },
+  {
+   "name": "sm-52-branch-orient-first-word365.txt",
+   "sha1": "0685b7fbe8a4b6365bf234dd1106915ac4d40029"
+  },
+  {
+   "name": "sm-52-branch-orient-first.docx",
+   "sha1": "8d8401466c7507bf1db0b1ae65842fe72fb8c99d"
+  },
+  {
+   "name": "sm-53-ppr-section-twice-word365.docx",
+   "sha1": "3e224319dd82f46843e869c60504511118244d79"
+  },
+  {
+   "name": "sm-53-ppr-section-twice-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-53-ppr-section-twice.docx",
+   "sha1": "caebc818f19178714060aca6cf8d98dca919dd32"
+  },
+  {
+   "name": "sm-60-tblpr-children-word365.docx",
+   "sha1": "7d208142d23390ad4165fc1424511e0c79686c04"
+  },
+  {
+   "name": "sm-60-tblpr-children-word365.txt",
+   "sha1": "5d1f35913ac63ac42be1e35fe61bb9c8c7e87620"
+  },
+  {
+   "name": "sm-60-tblpr-children.docx",
+   "sha1": "9e60bc853f58e5b964f04b1be2941a44586f772b"
+  },
+  {
+   "name": "sm-61-tblpr-attributes-word365.docx",
+   "sha1": "60600e95cdb476e62666b18308e49a022708a489"
+  },
+  {
+   "name": "sm-61-tblpr-attributes-word365.txt",
+   "sha1": "5d1f35913ac63ac42be1e35fe61bb9c8c7e87620"
+  },
+  {
+   "name": "sm-61-tblpr-attributes.docx",
+   "sha1": "3c84100ce36b4375506a368ff55c3210035bbaba"
+  },
+  {
+   "name": "sm-70-ind-in-one-ppr-word365.docx",
+   "sha1": "b01c1bafd9afccf9b61bcb8bfca68e71f3e2f1ed"
+  },
+  {
+   "name": "sm-70-ind-in-one-ppr-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-70-ind-in-one-ppr.docx",
+   "sha1": "0f37c847bd8bb8a0338989bb6df8eab1d1c3fc86"
+  },
+  {
+   "name": "sm-71-ind-across-ppr-word365.docx",
+   "sha1": "d734e0e349257da71234b34ce4b8ddf543fd5435"
+  },
+  {
+   "name": "sm-71-ind-across-ppr-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-71-ind-across-ppr.docx",
+   "sha1": "79578b0979cc4fda70975bbeb00954b2d0f75765"
+  },
+  {
+   "name": "sm-72-spacing-in-one-ppr-word365.docx",
+   "sha1": "420c35404e7b7c37600164ed0e07667f4fe82e5e"
+  },
+  {
+   "name": "sm-72-spacing-in-one-ppr-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-72-spacing-in-one-ppr.docx",
+   "sha1": "44509f1a35f1c0770c5d2f3b8e7718bf5fb2f512"
+  },
+  {
+   "name": "sm-73-rfonts-in-one-rpr-word365.docx",
+   "sha1": "4c788ed09ade1a9e11fe972635307ac2a49888e1"
+  },
+  {
+   "name": "sm-73-rfonts-in-one-rpr-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-73-rfonts-in-one-rpr.docx",
+   "sha1": "c7cf89b331306181074f73530cf16f085cd021d7"
+  },
+  {
+   "name": "sm-74-rfonts-across-rpr-word365.docx",
+   "sha1": "de1eccacdbd91b0935af70f53da407c100934583"
+  },
+  {
+   "name": "sm-74-rfonts-across-rpr-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-74-rfonts-across-rpr.docx",
+   "sha1": "548963143a81c5866006d163ebfad0eaa22cc416"
+  },
+  {
+   "name": "sm-80-vanish-on-off-word365.docx",
+   "sha1": "93e90440eacb7e7f42f0b69799ec90513907df49"
+  },
+  {
+   "name": "sm-80-vanish-on-off-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-80-vanish-on-off.docx",
+   "sha1": "a0856e12ec54b1338548b0b2a20002416a990768"
+  },
+  {
+   "name": "sm-81-vanish-off-on-word365.docx",
+   "sha1": "241902aebb9e6690fc153d6061db855fa45cd579"
+  },
+  {
+   "name": "sm-81-vanish-off-on-word365.txt",
+   "sha1": "be800558c78958ae8ba9df3ef8da88a94f361a13"
+  },
+  {
+   "name": "sm-81-vanish-off-on.docx",
+   "sha1": "148646e631ec58c755e14915a97f291317d4aaa3"
+  }
+ ]
+}
